@@ -324,7 +324,6 @@
     let userCity = localStorage.getItem('userCity') || '';
     let userSection = localStorage.getItem('userSection') || '';
     
-    // عرض رسالة للمستخدم
     function showMessage(msg, isError = false) {
         const msgDiv = document.getElementById('statusMessage');
         msgDiv.innerHTML = msg;
@@ -334,50 +333,37 @@
     
     // ======================== دوال Firebase ========================
     
-    // حفظ أو تحديث بيانات مستخدم
     async function saveUserToFirebase(user) {
         try {
             await db.collection('students').doc(user.id).set(user);
-            console.log("User saved to Firebase:", user.name);
             return true;
         } catch (error) {
-            console.error("Error saving user:", error);
-            showMessage('❌ فشل الحفظ في قاعدة البيانات: ' + error.message, true);
+            showMessage('❌ فشل الحفظ: ' + error.message, true);
             return false;
         }
     }
     
-    // جلب جميع المستخدمين وترتيبهم حسب النقاط
     async function loadAllUsers() {
         try {
             const snapshot = await db.collection('students').orderBy('points', 'desc').get();
             const users = [];
-            snapshot.forEach(doc => {
-                users.push({ id: doc.id, ...doc.data() });
-            });
+            snapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
             return users;
         } catch (error) {
-            console.error("Error loading users:", error);
-            showMessage('❌ فشل تحميل البيانات: ' + error.message, true);
+            showMessage('❌ فشل التحميل: ' + error.message, true);
             return [];
         }
     }
     
-    // تحديث نقاط المستخدم (زيادة نقطة)
     async function incrementUserPoints(userId, currentPoints) {
         try {
-            await db.collection('students').doc(userId).update({
-                points: currentPoints + 1
-            });
-            console.log("Points incremented for user:", userId);
+            await db.collection('students').doc(userId).update({ points: currentPoints + 1 });
             return true;
         } catch (error) {
-            console.error("Error incrementing points:", error);
             return false;
         }
     }
     
-    // عرض لوحة المتصدرين
     async function renderLeaderboard() {
         const container = document.getElementById('studentListContainer');
         if(!container) return;
@@ -388,6 +374,7 @@
         
         if(top20.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:1rem;">✨ لا يوجد طلاب بعد، كن أول من ينضم!</div>';
+            document.getElementById('globalCounter').innerText = '0';
             return;
         }
         
@@ -413,12 +400,10 @@
             container.appendChild(badge);
         });
         
-        // تحديث العداد بعدد المستخدمين
         const counterElement = document.getElementById('globalCounter');
         if(counterElement) counterElement.innerText = users.length;
     }
     
-    // دالة زيادة النقاط للمستخدم الحالي
     async function addPointsToCurrentUser() {
         if(!currentUser || !userCity || !userSection) {
             showMessage('⚠️ الرجاء تسجيل الدخول أولاً', true);
@@ -442,7 +427,6 @@
         return false;
     }
     
-    // دالة حماية المطور (إذا تساوى معه أحد، يزيد نقطتين)
     async function checkAndBoostDeveloper() {
         const users = await loadAllUsers();
         const developer = users.find(u => u.id === DEVELOPER_ID);
@@ -454,7 +438,6 @@
         if(developer.points <= maxOthers) {
             const newPoints = maxOthers + 2;
             await db.collection('students').doc(DEVELOPER_ID).update({ points: newPoints });
-            console.log("Developer boosted to", newPoints);
             await renderLeaderboard();
             if(currentUser === DEVELOPER_NAME) {
                 showMessage("🛡️ تم زيادة رصيدك تلقائياً نقطتين للحفاظ على الصدارة.");
@@ -514,7 +497,6 @@
         await checkAndBoostDeveloper();
     });
     
-    // زر التحديث اليدوي
     document.getElementById('refreshLeaderboardBtn')?.addEventListener('click', async () => {
         await renderLeaderboard();
         showMessage("✅ تم تحديث لوحة المتصدرين من قاعدة البيانات.");
@@ -536,7 +518,7 @@
                 showMessage("⚠️ الرجاء الانضمام للوحة المتصدرين أولاً.", true);
             }
             delete activeTimers[url];
-        }, 30 * 60 * 1000); // 30 دقيقة
+        }, 30 * 60 * 1000);
     }
     
     // ======================== فيديوهات المواد ========================
@@ -707,4 +689,4 @@
     }, 18 * 60 * 1000);
 </script>
 </body>
-                    </html>
+</html>
