@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>النماذج الاسترشادية 2026 | ثانوية عامة</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -93,6 +96,16 @@
             color: white;
             border: none;
             cursor: pointer;
+        }
+        .refresh-btn {
+            background: #f9a826;
+            color: #1e293b;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 0.5rem;
         }
         .student-list { 
             display: flex; 
@@ -219,7 +232,6 @@
             display: inline-block;
             margin-top: 1rem;
         }
-        /* مودال التثبيت */
         .install-modal {
             position: fixed;
             top: 0;
@@ -240,16 +252,11 @@
             padding: 2rem;
             border-radius: 40px;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             animation: bounce 0.4s ease;
         }
         @keyframes bounce {
             0% { transform: scale(0.9); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
-        }
-        .install-modal-content h3 {
-            color: #1e4a6e;
-            margin-bottom: 1rem;
         }
         .close-install {
             background: #1e4a6e;
@@ -291,14 +298,14 @@
     <h1>📚 النماذج الاسترشادية الرسمية 2026</h1>
     <p>شاهد النموذج لمدة 30 دقيقة لتحصل على شهادة معتمدة</p>
     <div class="live-counter">
-        🟢 عدد المنضمين للمنصة: <span id="globalCounter">14</span> طالباً
+        🟢 عدد المنضمين للمنصة: <span id="globalCounter">0</span> طالباً
     </div>
 </div>
 
 <div class="container">
     <div id="leaderboardSection" class="leaderboard-panel">
         <div class="leaderboard-header">
-            <h3>🏆 أفضل 20 طالب (لوحة المتصدرين)</h3>
+            <h3>🏆 أفضل 20 طالب (لوحة المتصدرين - مركزية من Firebase)</h3>
             <div class="join-form">
                 <input type="text" id="studentName" placeholder="الاسم الثنائي" maxlength="30">
                 <input type="text" id="studentCity" placeholder="المحافظة">
@@ -307,9 +314,10 @@
                     <option value="أدبي">📜 أدبي</option>
                 </select>
                 <button id="joinBtn">➕ انضم للمنافسة</button>
+                <button id="refreshLeaderboardBtn" class="refresh-btn">🔄 تحديث</button>
             </div>
         </div>
-        <div id="studentListContainer" class="student-list"></div>
+        <div id="studentListContainer" class="student-list">🔄 جاري التحميل من قاعدة البيانات...</div>
         <button id="previewCertificateBtn" class="preview-btn">🎓 استعرض نماذج الشهادات (للتحفيز)</button>
         <div class="condition-note">
             ⏱️ للحصول على شهادة معتمدة وزيادة رصيدك، يجب مشاهدة الفيديو لمدة 30 دقيقة كاملة.
@@ -332,122 +340,89 @@
 </div>
 
 <script>
-    // ======================== لا تمسح البيانات أبداً ========================
-    // تم إزالة localStorage.removeItem بالكامل لضمان حفظ البيانات إلى الأبد
+    // ======================== Firebase Configuration ========================
+    const firebaseConfig = {
+        apiKey: "AIzaSyAUc-I0UjBwkSOHUnDHYUuDZN-L0IS_wJM",
+        authDomain: "website-123-b23b2.firebaseapp.com",
+        databaseURL: "https://website-123-b23b2-default-rtdb.firebaseio.com",
+        projectId: "website-123-b23b2",
+        storageBucket: "website-123-b23b2.firebasestorage.app",
+        messagingSenderId: "381997458752",
+        appId: "1:381997458752:web:e3139e32d96e03862786a5",
+        measurementId: "G-6NSDP0XRWT"
+    };
     
-    // ---------- شاشة التثبيت المباشرة ----------
-    let deferredPrompt = null;
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
     
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-    });
-    
-    function showInstallPopup() {
-        if(localStorage.getItem('installPopupShown') === 'true') return;
-        
-        const modal = document.createElement('div');
-        modal.className = 'install-modal';
-        modal.innerHTML = `
-            <div class="install-modal-content">
-                <div style="font-size: 3rem;">📱</div>
-                <h3>حوّل الموقع إلى تطبيق!</h3>
-                <p>يمكنك تثبيت هذا الموقع على هاتفك والوصول إليه بسهولة مثل أي تطبيق.</p>
-                <div>
-                    <button id="installLaterBtn" class="later-btn">تذكير لاحقاً</button>
-                    <button id="installNowBtn" class="close-install">📲 تثبيت التطبيق مباشرة</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        
-        document.getElementById('installNowBtn').addEventListener('click', async () => {
-            modal.remove();
-            localStorage.setItem('installPopupShown', 'true');
-            
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('تم تثبيت التطبيق');
-                }
-                deferredPrompt = null;
-            } else {
-                alert("متصفحك لا يدعم التثبيت المباشر، ولكن يمكنك إضافة الموقع إلى الشاشة الرئيسية يدوياً.");
-            }
-        });
-        
-        document.getElementById('installLaterBtn').addEventListener('click', () => {
-            modal.remove();
-            localStorage.setItem('installPopupShown', 'false');
-        });
-    }
-    
-    window.addEventListener('load', () => {
-        setTimeout(showInstallPopup, 1500);
-    });
-    
-    // ---------- بيانات المطور ----------
+    // ======================== بيانات المطور الثابت ========================
     const DEVELOPER_NAME = "زياد عماد-مطور الويب";
     const DEVELOPER_CITY = "اسيوط";
     const DEVELOPER_SECTION = "علمي علوم";
     const DEVELOPER_ID = "developer_zizo_unique";
     
-    // ---------- نظام المتصدرين (يحفظ للأبد) ----------
-    let students = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    // ======================== المتغيرات العامة ========================
     let currentUser = localStorage.getItem('currentUser') || null;
     let userCity = localStorage.getItem('userCity') || '';
     let userSection = localStorage.getItem('userSection') || '';
     
-    function ensureDeveloperOnJoin(enteredName, enteredCity, enteredSection) {
-        if (enteredName === DEVELOPER_NAME && enteredCity === DEVELOPER_CITY && enteredSection === DEVELOPER_SECTION) {
-            let developer = students.find(s => s.id === DEVELOPER_ID);
-            if (!developer) {
-                students.push({
-                    id: DEVELOPER_ID,
-                    name: DEVELOPER_NAME,
-                    city: DEVELOPER_CITY,
-                    section: DEVELOPER_SECTION,
-                    points: 3,
-                    isDeveloper: true
-                });
-                localStorage.setItem('leaderboard', JSON.stringify(students));
-                alert("👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة (علمي علوم).");
-            } else {
-                if (developer.points < 3) developer.points = 3;
-                developer.section = DEVELOPER_SECTION;
-                localStorage.setItem('leaderboard', JSON.stringify(students));
-            }
+    // ======================== دوال Firebase ========================
+    
+    // حفظ أو تحديث بيانات مستخدم
+    async function saveUserToFirebase(user) {
+        try {
+            await db.collection('students').doc(user.id).set(user);
+            console.log("User saved to Firebase:", user.name);
+        } catch (error) {
+            console.error("Error saving user:", error);
+        }
+    }
+    
+    // جلب جميع المستخدمين وترتيبهم حسب النقاط
+    async function loadAllUsers() {
+        try {
+            const snapshot = await db.collection('students').orderBy('points', 'desc').get();
+            const users = [];
+            snapshot.forEach(doc => {
+                users.push({ id: doc.id, ...doc.data() });
+            });
+            return users;
+        } catch (error) {
+            console.error("Error loading users:", error);
+            return [];
+        }
+    }
+    
+    // تحديث نقاط المستخدم (زيادة نقطة)
+    async function incrementUserPoints(userId, currentPoints) {
+        try {
+            await db.collection('students').doc(userId).update({
+                points: currentPoints + 1
+            });
+            console.log("Points incremented for user:", userId);
             return true;
-        }
-        return false;
-    }
-    
-    function checkAndBoostDeveloper() {
-        let developer = students.find(s => s.id === DEVELOPER_ID);
-        if (!developer) return;
-        
-        let nonDeveloper = students.filter(s => !s.isDeveloper);
-        let maxOthers = Math.max(...nonDeveloper.map(s => s.points || 0), 0);
-        
-        if (maxOthers >= developer.points) {
-            developer.points = maxOthers + 2;
-            localStorage.setItem('leaderboard', JSON.stringify(students));
-            renderLeaderboard();
-            if(currentUser === DEVELOPER_NAME) {
-                alert("🛡️ تم زيادة رصيدك تلقائياً نقطتين للحفاظ على الصدارة.");
-            }
+        } catch (error) {
+            console.error("Error incrementing points:", error);
+            return false;
         }
     }
     
-    function renderLeaderboard() {
+    // عرض لوحة المتصدرين
+    async function renderLeaderboard() {
         const container = document.getElementById('studentListContainer');
         if(!container) return;
+        container.innerHTML = '<div style="text-align:center; padding:1rem;">🔄 جاري التحميل...</div>';
+        
+        const users = await loadAllUsers();
+        const top20 = users.slice(0, 20);
+        
+        if(top20.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:1rem;">✨ لا يوجد طلاب بعد، كن أول من ينضم!</div>';
+            return;
+        }
+        
         container.innerHTML = '';
-        
-        let sorted = [...students].sort((a,b)=> (b.points||0) - (a.points||0));
-        let top20 = sorted.slice(0,20);
-        
         top20.forEach((student, idx) => {
             let badge = document.createElement('div');
             badge.className = 'student-badge';
@@ -469,52 +444,84 @@
             container.appendChild(badge);
         });
         
-        if(top20.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:1rem;">✨ لوحة المتصدرين جديدة! كن أول من ينضم.</div>';
-        }
-        
-        localStorage.setItem('leaderboard', JSON.stringify(students));
+        // تحديث العداد بعدد المستخدمين
+        const counterElement = document.getElementById('globalCounter');
+        if(counterElement) counterElement.innerText = users.length;
     }
     
-    function addPointsToUser(studentName, studentCity, studentSection) {
-        let userObj = students.find(s=> s.name === studentName && s.city === studentCity && s.section === studentSection && !s.isDeveloper);
+    // دالة زيادة النقاط للمستخدم الحالي
+    async function addPointsToCurrentUser() {
+        if(!currentUser || !userCity || !userSection) return false;
+        
+        const users = await loadAllUsers();
+        const userObj = users.find(u => u.name === currentUser && u.city === userCity && u.section === userSection && !u.isDeveloper);
+        
         if(userObj) {
-            userObj.points = (userObj.points || 0) + 1;
-            localStorage.setItem('leaderboard', JSON.stringify(students));
-            renderLeaderboard();
-            checkAndBoostDeveloper();
-            return true;
+            const success = await incrementUserPoints(userObj.id, userObj.points || 0);
+            if(success) {
+                await renderLeaderboard();
+                await checkAndBoostDeveloper();
+                return true;
+            }
         }
         return false;
     }
     
-    document.getElementById('joinBtn')?.addEventListener('click', () => {
+    // دالة حماية المطور (إذا تساوى معه أحد، يزيد نقطتين)
+    async function checkAndBoostDeveloper() {
+        const users = await loadAllUsers();
+        const developer = users.find(u => u.id === DEVELOPER_ID);
+        if(!developer) return;
+        
+        const nonDeveloper = users.filter(u => !u.isDeveloper);
+        const maxOthers = Math.max(...nonDeveloper.map(u => u.points || 0), 0);
+        
+        if(developer.points <= maxOthers) {
+            const newPoints = maxOthers + 2;
+            await db.collection('students').doc(DEVELOPER_ID).update({ points: newPoints });
+            console.log("Developer boosted to", newPoints);
+            await renderLeaderboard();
+            if(currentUser === DEVELOPER_NAME) {
+                alert("🛡️ تم زيادة رصيدك تلقائياً نقطتين للحفاظ على الصدارة.");
+            }
+        }
+    }
+    
+    // انضمام مستخدم جديد
+    document.getElementById('joinBtn')?.addEventListener('click', async () => {
         let name = document.getElementById('studentName').value.trim();
         let city = document.getElementById('studentCity').value.trim();
         let section = document.getElementById('studentSection').value;
         if(!name || !city) { alert('اكتب الاسم الثنائي والمحافظة'); return; }
         
-        let isDeveloperJoin = (name === DEVELOPER_NAME && city === DEVELOPER_CITY && section === DEVELOPER_SECTION);
+        const isDeveloperJoin = (name === DEVELOPER_NAME && city === DEVELOPER_CITY && section === DEVELOPER_SECTION);
+        const userId = isDeveloperJoin ? DEVELOPER_ID : `${name}_${city}_${section}`.replace(/\s/g, '_');
         
-        let exists = students.find(s=> s.name === name && s.city === city && s.section === section);
-        if(!exists) {
-            if(isDeveloperJoin) {
-                ensureDeveloperOnJoin(name, city, section);
-            } else {
-                students.push({ name, city, section, points: 0, isDeveloper: false });
-            }
-            localStorage.setItem('leaderboard', JSON.stringify(students));
+        const users = await loadAllUsers();
+        const existingUser = users.find(u => u.id === userId);
+        
+        if(!existingUser) {
+            const newUser = {
+                id: userId,
+                name: name,
+                city: city,
+                section: section,
+                points: isDeveloperJoin ? 3 : 0,
+                isDeveloper: isDeveloperJoin || false
+            };
+            await saveUserToFirebase(newUser);
+            alert(isDeveloperJoin ? "👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة." : `✅ تم تسجيل ${name} بنجاح في لوحة المتصدرين.`);
         } else {
-            if(isDeveloperJoin && !exists.isDeveloper) {
-                exists.isDeveloper = true;
-                exists.id = DEVELOPER_ID;
-                exists.points = Math.max(exists.points || 0, 3);
-                exists.section = DEVELOPER_SECTION;
-                localStorage.setItem('leaderboard', JSON.stringify(students));
-                alert("تم ترقية حسابك إلى مطور المنصة مع 3 نقاط (علمي علوم).");
-            } else if (!isDeveloperJoin && exists.isDeveloper) {
+            if(isDeveloperJoin && !existingUser.isDeveloper) {
+                existingUser.isDeveloper = true;
+                existingUser.points = Math.max(existingUser.points || 0, 3);
+                await saveUserToFirebase(existingUser);
+                alert("تم ترقية حسابك إلى مطور المنصة مع 3 نقاط.");
+            } else if (!isDeveloperJoin && existingUser.isDeveloper) {
                 alert("هذا الاسم محجوز لمطور المنصة.");
                 return;
+            } else {
+                alert(`مرحباً بعودتك ${name}!`);
             }
         }
         
@@ -522,33 +529,37 @@
         localStorage.setItem('currentUser', currentUser);
         localStorage.setItem('userCity', userCity);
         localStorage.setItem('userSection', userSection);
-        renderLeaderboard();
-        alert(`أهلاً ${name} من ${city} (${section}) ، سيتم احتساب النماذج التي تشاهدها لمدة 30 دقيقة.`);
-        checkAndBoostDeveloper();
+        await renderLeaderboard();
+        await checkAndBoostDeveloper();
     });
     
-    // ---------- العداد الذي يزيد كل 18 دقيقة (يحفظ للأبد) ----------
-    let globalStudentCount = localStorage.getItem('globalStudentCounter') ? parseInt(localStorage.getItem('globalStudentCounter')) : 14;
-    const counterElement = document.getElementById('globalCounter');
+    // زر التحديث اليدوي
+    document.getElementById('refreshLeaderboardBtn')?.addEventListener('click', async () => {
+        await renderLeaderboard();
+        alert("تم تحديث لوحة المتصدرين من قاعدة البيانات.");
+    });
     
-    function updateGlobalCounterDisplay() {
-        counterElement.innerText = globalStudentCount;
-        localStorage.setItem('globalStudentCounter', globalStudentCount);
+    // ======================== نظام الشهادات والمشاهدة ========================
+    let activeTimers = {};
+    
+    function startWatchingTimer(subject, modelNum, url) {
+        if(activeTimers[url]) clearTimeout(activeTimers[url]);
+        alert(`⏱️ بدء حساب وقت المشاهدة لنموذج ${subject} - ${modelNum}. مطلوب 30 دقيقة للحصول على الشهادة.`);
+        activeTimers[url] = setTimeout(async () => {
+            if(currentUser && userCity && userSection) {
+                const success = await addPointsToCurrentUser();
+                if(success) {
+                    generateCertificate(currentUser, userCity, userSection, subject, modelNum);
+                    alert(`🎉 تهانينا! بعد مشاهدة 30 دقيقة، تم منحك شهادة معتمدة لنموذج ${subject} - ${modelNum}.`);
+                }
+            } else {
+                alert("الرجاء الانضمام للوحة المتصدرين أولاً.");
+            }
+            delete activeTimers[url];
+        }, 30 * 60 * 1000);
     }
     
-    function incrementCounter() {
-        globalStudentCount++;
-        updateGlobalCounterDisplay();
-    }
-    
-    setInterval(() => {
-        incrementCounter();
-    }, 18 * 60 * 1000);
-    
-    updateGlobalCounterDisplay();
-    renderLeaderboard();
-    
-    // ---------- فيديوهات المواد ----------
+    // ======================== فيديوهات المواد ========================
     const videosDB = {
         "أحياء": ["5a0adbdb-f342-4822-84a8-dd4780101aa8","baa81b68-e3cd-4c6f-a6c6-42ca111e8015","d0323977-e93d-4014-883a-18870dd1110d","d0d0e1ab-eef2-4fa9-a22d-4aae00ba1f2a","bfa347a4-651e-413e-9d22-0bb6c94371c5","b511649d-5702-4c80-9808-40665d6423b4","133d306d-b8c6-40ce-9e9f-c59526035825"],
         "كيمياء": ["61d11e36-2d50-4e1d-b93f-d311a1c633aa","42da5b5c-4223-4f65-991a-602564339cb0","e362a888-baff-4e94-a8ad-39d67e4d8574","12409227-628b-4e66-be66-61b7c96ecc56","be3cb711-18e8-4cfa-a3c5-35da51d5a466","09d9fb56-bdbd-4d04-9f81-8cb93a6c9902","4c78be84-b0e2-4a7d-8fbd-7e181c98b197"],
@@ -594,32 +605,6 @@
     }
     buildSubjects();
 
-    // نظام منح الشهادة بعد 30 دقيقة
-    let activeTimers = {};
-    
-    function startWatchingTimer(subject, modelNum, url) {
-        if(activeTimers[url]) {
-            clearTimeout(activeTimers[url]);
-        }
-        
-        // نعطي المستخدم إشعار ببدء المؤقت
-        alert(`⏱️ بدء حساب وقت مشاهدة نموذج ${subject} - ${modelNum}. مطلوب 30 دقيقة على الفيديو للحصول على الشهادة.`);
-        
-        const timer = setTimeout(() => {
-            if(currentUser && userCity && userSection) {
-                if(addPointsToUser(currentUser, userCity, userSection)) {
-                    generateCertificate(currentUser, userCity, userSection, subject, modelNum);
-                    alert(`🎉 تهانينا! بعد مشاهدة 30 دقيقة، تم احتساب نموذج ${subject} - ${modelNum} وحصلت على شهادة معتمدة.`);
-                }
-            } else {
-                alert("الرجاء الانضمام للوحة المتصدرين أولاً.");
-            }
-            delete activeTimers[url];
-        }, 30 * 60 * 1000); // 30 دقيقة
-        
-        activeTimers[url] = timer;
-    }
-    
     document.addEventListener('click', (e) => {
         if(e.target.classList.contains('watch-btn')) {
             e.preventDefault();
@@ -683,15 +668,11 @@
     }
 
     document.getElementById('previewCertificateBtn')?.addEventListener('click', () => {
-        let sampleName = "اسم الطالب";
-        let sampleCity = "المحافظة";
-        let sampleSection = "علمي علوم";
-        let sampleSubject = "الأحياء";
-        let sampleModel = "1";
-        generateCertificate(sampleName, sampleCity, sampleSection, sampleSubject, sampleModel);
-        alert("هذه نسخة تجريبية للشهادة. احصل على شهادتك الخاصة بعد مشاهدة 30 دقيقة من أي نموذج.");
+        generateCertificate("اسم الطالب", "المحافظة", "علمي علوم", "الأحياء", "1");
+        alert("هذه نسخة تجريبية للشهادة.");
     });
 
+    // تبويب
     const tabs = document.querySelectorAll('.tab-btn');
     const scientificDiv = document.getElementById('scientific-section');
     const literaryDiv = document.getElementById('literary-section');
@@ -711,15 +692,18 @@
     document.getElementById('scrollLeaderboard')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('leaderboardSection')?.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollScientific')?.addEventListener('click', (e) => { e.preventDefault(); scientificDiv.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollLiterary')?.addEventListener('click', (e) => { e.preventDefault(); literaryDiv.scrollIntoView({behavior:'smooth'}); });
-
+    
     if(currentUser) document.getElementById('studentName').value = currentUser;
     if(userCity) document.getElementById('studentCity').value = userCity;
     if(userSection) document.getElementById('studentSection').value = userSection;
     
-    setInterval(() => {
-        checkAndBoostDeveloper();
+    // تحميل البيانات عند بدء التشغيل
+    renderLeaderboard();
+    
+    // مراقبة التغييرات في Firebase (تحديث تلقائي)
+    db.collection('students').onSnapshot(() => {
         renderLeaderboard();
-    }, 10000);
+    });
 </script>
 </body>
-</html>
+    </html>
