@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>النماذج الاسترشادية 2026 | ثانوية عامة</title>
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -351,20 +352,18 @@
     
     async function checkFirebaseConnection() {
         try {
-            // محاولة قراءة بسيطة من قاعدة البيانات للتحقق من الاتصال
-            const testQuery = await db.collection('students').limit(1).get();
+            await db.collection('students').limit(1).get();
             statusLight.className = 'status-light green';
-            statusText.innerHTML = '✅ Firebase متصل | يحفظ البيانات';
+            statusText.innerHTML = '✅ Firebase متصل | حفظ سحابي + محلي';
             return true;
         } catch (error) {
             console.error("Firebase connection error:", error);
             statusLight.className = 'status-light red';
-            statusText.innerHTML = '❌ Firebase غير متصل | تحقق من الإعدادات';
+            statusText.innerHTML = '❌ وضع عدم الاتصال | البيانات محفوظة محلياً';
             return false;
         }
     }
     
-    // التحقق من الاتصال عند تحميل الصفحة وكل 30 ثانية
     checkFirebaseConnection();
     setInterval(checkFirebaseConnection, 30000);
     
@@ -374,11 +373,61 @@
     const DEVELOPER_SECTION = "علمي علوم";
     const DEVELOPER_ID = "developer_zizo_unique";
     
-    // ======================== المتغيرات العامة ========================
-    let currentUser = localStorage.getItem('currentUser') || null;
-    let userCity = localStorage.getItem('userCity') || '';
-    let userSection = localStorage.getItem('userSection') || '';
+    // ======================== إدارة التخزين المزدوج (محلي + سحابي) ========================
+    let currentUser = null;
+    let userCity = '';
+    let userSection = '';
     
+    // تحميل البيانات من التخزين المحلي أولاً (للسرعة)
+    function loadFromLocalStorage() {
+        currentUser = localStorage.getItem('currentUser');
+        userCity = localStorage.getItem('userCity');
+        userSection = localStorage.getItem('userSection');
+        if(currentUser) {
+            document.getElementById('studentName').value = currentUser;
+            document.getElementById('studentCity').value = userCity;
+            document.getElementById('studentSection').value = userSection;
+        }
+    }
+    
+    // حفظ البيانات في التخزين المحلي
+    function saveToLocalStorage(name, city, section) {
+        localStorage.setItem('currentUser', name);
+        localStorage.setItem('userCity', city);
+        localStorage.setItem('userSection', section);
+        currentUser = name;
+        userCity = city;
+        userSection = section;
+    }
+    
+    // دمج التخزين المحلي مع السحابي (لضمان عدم فقدان البيانات)
+    async function syncLocalWithCloud() {
+        const localName = localStorage.getItem('currentUser');
+        const localCity = localStorage.getItem('userCity');
+        const localSection = localStorage.getItem('userSection');
+        
+        if(localName && localCity && localSection) {
+            const userId = `${localName}_${localCity}_${localSection}`.replace(/\s/g, '_');
+            const userRef = db.collection('students').doc(userId);
+            const doc = await userRef.get();
+            
+            if(!doc.exists) {
+                // إذا كان المستخدم موجود محلياً ولكن ليس في السحاب، نرفعه للسحاب
+                await userRef.set({
+                    id: userId,
+                    name: localName,
+                    city: localCity,
+                    section: localSection,
+                    points: parseInt(localStorage.getItem('localPoints') || '0'),
+                    createdAt: new Date().toISOString(),
+                    isDeveloper: (localName === DEVELOPER_NAME && localCity === DEVELOPER_CITY && localSection === DEVELOPER_SECTION)
+                });
+                console.log("تم رفع البيانات المحلية إلى السحاب");
+            }
+        }
+    }
+    
+    // ======================== دوال Firebase ========================
     function showMessage(msg, isError = false) {
         const msgDiv = document.getElementById('statusMessage');
         msgDiv.innerHTML = msg;
@@ -386,14 +435,12 @@
         setTimeout(() => { msgDiv.innerHTML = ''; }, 3000);
     }
     
-    // ======================== دوال Firebase ========================
-    
     async function saveUserToFirebase(user) {
         try {
             await db.collection('students').doc(user.id).set(user);
             return true;
         } catch (error) {
-            showMessage('❌ فشل الحفظ: ' + error.message, true);
+            console.warn("فشل الحفظ في Firebase، ولكن البيانات محفوظة محلياً:", error);
             return false;
         }
     }
@@ -403,10 +450,14 @@
             const snapshot = await db.collection('students').orderBy('points', 'desc').get();
             const users = [];
             snapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
+            
+            // حفظ النسخة المحلية من اللوحة (لحالة عدم الاتصال)
+            localStorage.setItem('cachedLeaderboard', JSON.stringify(users));
             return users;
         } catch (error) {
-            showMessage('❌ فشل التحميل: ' + error.message, true);
-            return [];
+            console.warn("فشل التحميل من Firebase، جاري استخدام النسخة المحلية المخبأة:", error);
+            const cached = localStorage.getItem('cachedLeaderboard');
+            return cached ? JSON.parse(cached) : [];
         }
     }
     
@@ -415,6 +466,9 @@
             await db.collection('students').doc(userId).update({ points: currentPoints + 1 });
             return true;
         } catch (error) {
+            console.warn("فشل تحديث Firebase، جاري الحفظ محلياً:", error);
+            // حفظ النقاط محلياً للمستخدم الحالي
+            localStorage.setItem('localPoints', (currentPoints + 1).toString());
             return false;
         }
     }
@@ -470,12 +524,12 @@
         
         if(userObj) {
             const success = await incrementUserPoints(userObj.id, userObj.points || 0);
-            if(success) {
-                await renderLeaderboard();
-                await checkAndBoostDeveloper();
-                showMessage(`🎉 تهانينا! تم إضافة شهادة جديدة. رصيدك الآن ${(userObj.points || 0) + 1}`);
-                return true;
-            }
+            // حتى لو فشل Firebase، نحدث النقاط محلياً
+            userObj.points = (userObj.points || 0) + 1;
+            await renderLeaderboard();
+            await checkAndBoostDeveloper();
+            showMessage(`🎉 تهانينا! تم إضافة شهادة جديدة. رصيدك الآن ${userObj.points}`);
+            return true;
         } else {
             showMessage('❌ لم يتم العثور على حسابك', true);
         }
@@ -492,7 +546,12 @@
         
         if(developer.points <= maxOthers) {
             const newPoints = maxOthers + 2;
-            await db.collection('students').doc(DEVELOPER_ID).update({ points: newPoints });
+            try {
+                await db.collection('students').doc(DEVELOPER_ID).update({ points: newPoints });
+                developer.points = newPoints;
+            } catch(e) {
+                console.warn("فشل تحديث المطور في Firebase");
+            }
             await renderLeaderboard();
             if(currentUser === DEVELOPER_NAME) {
                 showMessage("🛡️ تم زيادة رصيدك تلقائياً نقطتين للحفاظ على الصدارة.");
@@ -500,7 +559,7 @@
         }
     }
     
-    // انضمام مستخدم جديد
+    // انضمام مستخدم جديد (حفظ في Firebase + محلياً)
     document.getElementById('joinBtn')?.addEventListener('click', async () => {
         let name = document.getElementById('studentName').value.trim();
         let city = document.getElementById('studentCity').value.trim();
@@ -512,6 +571,9 @@
         
         const isDeveloperJoin = (name === DEVELOPER_NAME && city === DEVELOPER_CITY && section === DEVELOPER_SECTION);
         const userId = isDeveloperJoin ? DEVELOPER_ID : `${name}_${city}_${section}`.replace(/\s/g, '_');
+        
+        // حفظ في التخزين المحلي فوراً
+        saveToLocalStorage(name, city, section);
         
         const users = await loadAllUsers();
         const existingUser = users.find(u => u.id === userId);
@@ -526,11 +588,8 @@
                 isDeveloper: isDeveloperJoin || false,
                 createdAt: new Date().toISOString()
             };
-            const saved = await saveUserToFirebase(newUser);
-            if(saved) {
-                showMessage(isDeveloperJoin ? "👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة." : `✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين.`);
-                await checkFirebaseConnection();
-            }
+            await saveUserToFirebase(newUser);
+            showMessage(isDeveloperJoin ? "👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة." : `✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين.`);
         } else {
             if(isDeveloperJoin && !existingUser.isDeveloper) {
                 existingUser.isDeveloper = true;
@@ -545,12 +604,9 @@
             }
         }
         
-        currentUser = name; userCity = city; userSection = section;
-        localStorage.setItem('currentUser', currentUser);
-        localStorage.setItem('userCity', userCity);
-        localStorage.setItem('userSection', userSection);
         await renderLeaderboard();
         await checkAndBoostDeveloper();
+        await syncLocalWithCloud();
     });
     
     document.getElementById('refreshLeaderboardBtn')?.addEventListener('click', async () => {
@@ -720,15 +776,10 @@
     document.getElementById('scrollScientific')?.addEventListener('click', (e) => { e.preventDefault(); scientificDiv.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollLiterary')?.addEventListener('click', (e) => { e.preventDefault(); literaryDiv.scrollIntoView({behavior:'smooth'}); });
     
-    // تعبئة الحقول إذا كان هناك مستخدم سابق
-    if(currentUser) {
-        document.getElementById('studentName').value = currentUser;
-        document.getElementById('studentCity').value = userCity;
-        document.getElementById('studentSection').value = userSection;
-    }
-    
     // تحميل البيانات عند بدء التشغيل
+    loadFromLocalStorage();
     renderLeaderboard();
+    syncLocalWithCloud();
     
     // مراقبة التغييرات في Firebase (تحديث تلقائي)
     db.collection('students').onSnapshot(() => {
@@ -746,4 +797,4 @@
     }, 18 * 60 * 1000);
 </script>
 </body>
-</html>
+    </html>
