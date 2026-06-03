@@ -40,7 +40,6 @@
             color: white;
             text-align: center;
             padding: 2rem;
-            position: relative;
         }
         .live-counter {
             background: #f9a826;
@@ -52,7 +51,6 @@
             font-size: 1.6rem;
             margin-top: 1rem;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            direction: ltr;
         }
         .live-counter span {
             font-size: 2rem;
@@ -105,7 +103,6 @@
             border-radius: 40px;
             font-weight: bold;
             cursor: pointer;
-            margin-right: 0.5rem;
         }
         .student-list { 
             display: flex; 
@@ -232,50 +229,10 @@
             display: inline-block;
             margin-top: 1rem;
         }
-        .install-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            direction: rtl;
-        }
-        .install-modal-content {
-            background: white;
-            max-width: 400px;
-            width: 90%;
-            padding: 2rem;
-            border-radius: 40px;
+        .status-msg {
             text-align: center;
-            animation: bounce 0.4s ease;
-        }
-        @keyframes bounce {
-            0% { transform: scale(0.9); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .close-install {
-            background: #1e4a6e;
-            color: white;
-            border: none;
-            padding: 0.6rem 1.5rem;
-            border-radius: 40px;
-            cursor: pointer;
             margin-top: 0.5rem;
-            font-weight: bold;
-        }
-        .later-btn {
-            background: transparent;
-            border: 1px solid #1e4a6e;
-            color: #1e4a6e;
-            padding: 0.5rem 1rem;
-            border-radius: 40px;
-            cursor: pointer;
-            margin-left: 0.5rem;
+            font-size: 0.9rem;
         }
         @media (max-width: 700px) {
             .model-item { flex-direction: column; align-items: flex-start; }
@@ -318,6 +275,7 @@
             </div>
         </div>
         <div id="studentListContainer" class="student-list">🔄 جاري التحميل من قاعدة البيانات...</div>
+        <div id="statusMessage" class="status-msg"></div>
         <button id="previewCertificateBtn" class="preview-btn">🎓 استعرض نماذج الشهادات (للتحفيز)</button>
         <div class="condition-note">
             ⏱️ للحصول على شهادة معتمدة وزيادة رصيدك، يجب مشاهدة الفيديو لمدة 30 دقيقة كاملة.
@@ -348,8 +306,7 @@
         projectId: "website-123-b23b2",
         storageBucket: "website-123-b23b2.firebasestorage.app",
         messagingSenderId: "381997458752",
-        appId: "1:381997458752:web:e3139e32d96e03862786a5",
-        measurementId: "G-6NSDP0XRWT"
+        appId: "1:381997458752:web:e3139e32d96e03862786a5"
     };
     
     // Initialize Firebase
@@ -367,6 +324,14 @@
     let userCity = localStorage.getItem('userCity') || '';
     let userSection = localStorage.getItem('userSection') || '';
     
+    // عرض رسالة للمستخدم
+    function showMessage(msg, isError = false) {
+        const msgDiv = document.getElementById('statusMessage');
+        msgDiv.innerHTML = msg;
+        msgDiv.style.color = isError ? 'red' : 'green';
+        setTimeout(() => { msgDiv.innerHTML = ''; }, 3000);
+    }
+    
     // ======================== دوال Firebase ========================
     
     // حفظ أو تحديث بيانات مستخدم
@@ -374,8 +339,11 @@
         try {
             await db.collection('students').doc(user.id).set(user);
             console.log("User saved to Firebase:", user.name);
+            return true;
         } catch (error) {
             console.error("Error saving user:", error);
+            showMessage('❌ فشل الحفظ في قاعدة البيانات: ' + error.message, true);
+            return false;
         }
     }
     
@@ -390,6 +358,7 @@
             return users;
         } catch (error) {
             console.error("Error loading users:", error);
+            showMessage('❌ فشل تحميل البيانات: ' + error.message, true);
             return [];
         }
     }
@@ -451,7 +420,10 @@
     
     // دالة زيادة النقاط للمستخدم الحالي
     async function addPointsToCurrentUser() {
-        if(!currentUser || !userCity || !userSection) return false;
+        if(!currentUser || !userCity || !userSection) {
+            showMessage('⚠️ الرجاء تسجيل الدخول أولاً', true);
+            return false;
+        }
         
         const users = await loadAllUsers();
         const userObj = users.find(u => u.name === currentUser && u.city === userCity && u.section === userSection && !u.isDeveloper);
@@ -461,8 +433,11 @@
             if(success) {
                 await renderLeaderboard();
                 await checkAndBoostDeveloper();
+                showMessage(`🎉 تهانينا! تم إضافة شهادة جديدة. رصيدك الآن ${(userObj.points || 0) + 1}`);
                 return true;
             }
+        } else {
+            showMessage('❌ لم يتم العثور على حسابك', true);
         }
         return false;
     }
@@ -482,7 +457,7 @@
             console.log("Developer boosted to", newPoints);
             await renderLeaderboard();
             if(currentUser === DEVELOPER_NAME) {
-                alert("🛡️ تم زيادة رصيدك تلقائياً نقطتين للحفاظ على الصدارة.");
+                showMessage("🛡️ تم زيادة رصيدك تلقائياً نقطتين للحفاظ على الصدارة.");
             }
         }
     }
@@ -492,7 +467,10 @@
         let name = document.getElementById('studentName').value.trim();
         let city = document.getElementById('studentCity').value.trim();
         let section = document.getElementById('studentSection').value;
-        if(!name || !city) { alert('اكتب الاسم الثنائي والمحافظة'); return; }
+        if(!name || !city) { 
+            showMessage('❌ اكتب الاسم الثنائي والمحافظة', true);
+            return; 
+        }
         
         const isDeveloperJoin = (name === DEVELOPER_NAME && city === DEVELOPER_CITY && section === DEVELOPER_SECTION);
         const userId = isDeveloperJoin ? DEVELOPER_ID : `${name}_${city}_${section}`.replace(/\s/g, '_');
@@ -507,21 +485,24 @@
                 city: city,
                 section: section,
                 points: isDeveloperJoin ? 3 : 0,
-                isDeveloper: isDeveloperJoin || false
+                isDeveloper: isDeveloperJoin || false,
+                createdAt: new Date().toISOString()
             };
-            await saveUserToFirebase(newUser);
-            alert(isDeveloperJoin ? "👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة." : `✅ تم تسجيل ${name} بنجاح في لوحة المتصدرين.`);
+            const saved = await saveUserToFirebase(newUser);
+            if(saved) {
+                showMessage(isDeveloperJoin ? "👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة." : `✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين.`);
+            }
         } else {
             if(isDeveloperJoin && !existingUser.isDeveloper) {
                 existingUser.isDeveloper = true;
                 existingUser.points = Math.max(existingUser.points || 0, 3);
                 await saveUserToFirebase(existingUser);
-                alert("تم ترقية حسابك إلى مطور المنصة مع 3 نقاط.");
+                showMessage("تم ترقية حسابك إلى مطور المنصة مع 3 نقاط.");
             } else if (!isDeveloperJoin && existingUser.isDeveloper) {
-                alert("هذا الاسم محجوز لمطور المنصة.");
+                showMessage("هذا الاسم محجوز لمطور المنصة.", true);
                 return;
             } else {
-                alert(`مرحباً بعودتك ${name}!`);
+                showMessage(`👋 مرحباً بعودتك ${name}!`);
             }
         }
         
@@ -536,7 +517,7 @@
     // زر التحديث اليدوي
     document.getElementById('refreshLeaderboardBtn')?.addEventListener('click', async () => {
         await renderLeaderboard();
-        alert("تم تحديث لوحة المتصدرين من قاعدة البيانات.");
+        showMessage("✅ تم تحديث لوحة المتصدرين من قاعدة البيانات.");
     });
     
     // ======================== نظام الشهادات والمشاهدة ========================
@@ -544,19 +525,18 @@
     
     function startWatchingTimer(subject, modelNum, url) {
         if(activeTimers[url]) clearTimeout(activeTimers[url]);
-        alert(`⏱️ بدء حساب وقت المشاهدة لنموذج ${subject} - ${modelNum}. مطلوب 30 دقيقة للحصول على الشهادة.`);
+        showMessage(`⏱️ بدء حساب وقت المشاهدة لنموذج ${subject} - ${modelNum}. مطلوب 30 دقيقة للحصول على الشهادة.`);
         activeTimers[url] = setTimeout(async () => {
             if(currentUser && userCity && userSection) {
                 const success = await addPointsToCurrentUser();
                 if(success) {
                     generateCertificate(currentUser, userCity, userSection, subject, modelNum);
-                    alert(`🎉 تهانينا! بعد مشاهدة 30 دقيقة، تم منحك شهادة معتمدة لنموذج ${subject} - ${modelNum}.`);
                 }
             } else {
-                alert("الرجاء الانضمام للوحة المتصدرين أولاً.");
+                showMessage("⚠️ الرجاء الانضمام للوحة المتصدرين أولاً.", true);
             }
             delete activeTimers[url];
-        }, 30 * 60 * 1000);
+        }, 30 * 60 * 1000); // 30 دقيقة
     }
     
     // ======================== فيديوهات المواد ========================
@@ -611,7 +591,10 @@
             let subject = e.target.getAttribute('data-subject');
             let modelNum = e.target.getAttribute('data-model');
             let url = e.target.getAttribute('data-url');
-            if(!currentUser) { alert("⚠️ سجل اسمك ومحافظتك وشعبتك في لوحة المتصدرين أولاً."); return; }
+            if(!currentUser) { 
+                showMessage("⚠️ سجل اسمك ومحافظتك وشعبتك في لوحة المتصدرين أولاً.", true);
+                return; 
+            }
             window.open(url, '_blank');
             startWatchingTimer(subject, modelNum, url);
         }
@@ -663,16 +646,19 @@
             link.download = `certificate_${studentName}_${subject}.png`;
             link.href = canvas.toDataURL();
             link.click();
-        } catch(e) { alert('يمكنك التقاط لقطة شاشة للشهادة.'); }
+            showMessage("📸 تم تحميل الشهادة كصورة على جهازك!");
+        } catch(e) { 
+            showMessage("يمكنك التقاط لقطة شاشة للشهادة.", true);
+        }
         document.body.removeChild(certDiv);
     }
 
     document.getElementById('previewCertificateBtn')?.addEventListener('click', () => {
-        generateCertificate("اسم الطالب", "المحافظة", "علمي علوم", "الأحياء", "1");
-        alert("هذه نسخة تجريبية للشهادة.");
+        generateCertificate("اسم الطالب التجريبي", "المحافظة", "علمي علوم", "الأحياء", "1");
+        showMessage("هذه نسخة تجريبية للشهادة. احصل على شهادتك الخاصة بعد مشاهدة 30 دقيقة من أي نموذج.");
     });
 
-    // تبويب
+    // التبويب
     const tabs = document.querySelectorAll('.tab-btn');
     const scientificDiv = document.getElementById('scientific-section');
     const literaryDiv = document.getElementById('literary-section');
@@ -689,13 +675,18 @@
             }
         });
     });
+    
+    // سكرول
     document.getElementById('scrollLeaderboard')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('leaderboardSection')?.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollScientific')?.addEventListener('click', (e) => { e.preventDefault(); scientificDiv.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollLiterary')?.addEventListener('click', (e) => { e.preventDefault(); literaryDiv.scrollIntoView({behavior:'smooth'}); });
     
-    if(currentUser) document.getElementById('studentName').value = currentUser;
-    if(userCity) document.getElementById('studentCity').value = userCity;
-    if(userSection) document.getElementById('studentSection').value = userSection;
+    // تعبئة الحقول إذا كان هناك مستخدم سابق
+    if(currentUser) {
+        document.getElementById('studentName').value = currentUser;
+        document.getElementById('studentCity').value = userCity;
+        document.getElementById('studentSection').value = userSection;
+    }
     
     // تحميل البيانات عند بدء التشغيل
     renderLeaderboard();
@@ -704,6 +695,16 @@
     db.collection('students').onSnapshot(() => {
         renderLeaderboard();
     });
+    
+    // العداد التلقائي (يزيد كل 18 دقيقة)
+    let globalCounter = localStorage.getItem('globalCounter') ? parseInt(localStorage.getItem('globalCounter')) : 14;
+    const counterSpan = document.getElementById('globalCounter');
+    if(counterSpan) counterSpan.innerText = globalCounter;
+    setInterval(() => {
+        globalCounter++;
+        if(counterSpan) counterSpan.innerText = globalCounter;
+        localStorage.setItem('globalCounter', globalCounter);
+    }, 18 * 60 * 1000);
 </script>
 </body>
-    </html>
+                    </html>
