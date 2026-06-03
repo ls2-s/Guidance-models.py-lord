@@ -254,38 +254,39 @@
 </div>
 
 <script>
-    // ---------- المطور الثابت في الصدارة ----------
+    // ---------- بيانات المطور ----------
     const DEVELOPER_NAME = "زياد عماد-مطور الويب";
     const DEVELOPER_CITY = "اسيوط";
-    const DEVELOPER_ID = "developer_zizo";
+    const DEVELOPER_ID = "developer_zizo_unique";
     
     // ---------- نظام المتصدرين ----------
     let students = JSON.parse(localStorage.getItem('leaderboard')) || [];
     let currentUser = localStorage.getItem('currentUser') || null;
     let userCity = localStorage.getItem('userCity') || '';
     
-    // التأكد من وجود المطور في القائمة وبأعلى نقاط ممكنة
-    function ensureDeveloperInList() {
-        let developer = students.find(s => s.id === DEVELOPER_ID);
-        if (!developer) {
-            students.push({
-                id: DEVELOPER_ID,
-                name: DEVELOPER_NAME,
-                city: DEVELOPER_CITY,
-                points: 999999, // نقاط خيالية لضمان الصدارة المطلقة
-                isDeveloper: true
-            });
-        } else {
-            developer.name = DEVELOPER_NAME;
-            developer.city = DEVELOPER_CITY;
-            developer.isDeveloper = true;
-            // نضمن أنه الأكبر
-            let maxPoints = Math.max(...students.filter(s=> !s.isDeveloper).map(s=> s.points||0), 0);
-            if (developer.points <= maxPoints) {
-                developer.points = maxPoints + 100; // دائماً متقدم بفارق كبير
+    // دالة للتحقق من وجود المطور وإضافة نقاطه التلقائية عند الانضمام
+    function ensureDeveloperOnJoin(enteredName, enteredCity) {
+        if (enteredName === DEVELOPER_NAME && enteredCity === DEVELOPER_CITY) {
+            let developer = students.find(s => s.id === DEVELOPER_ID);
+            if (!developer) {
+                // إضافة المطور بـ 3 نقاط
+                students.push({
+                    id: DEVELOPER_ID,
+                    name: DEVELOPER_NAME,
+                    city: DEVELOPER_CITY,
+                    points: 3,
+                    isDeveloper: true
+                });
+                localStorage.setItem('leaderboard', JSON.stringify(students));
+                alert("👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة.");
+            } else {
+                // التأكد من أن نقاطه لا تقل عن 3
+                if (developer.points < 3) developer.points = 3;
+                localStorage.setItem('leaderboard', JSON.stringify(students));
             }
+            return true;
         }
-        localStorage.setItem('leaderboard', JSON.stringify(students));
+        return false;
     }
     
     // دالة لزيادة نقاط المطور تلقائياً عند المساواة
@@ -303,7 +304,6 @@
             // إشعار للمستخدم (يظهر للجميع)
             let msg = `🔔 نظام الحماية: المطور ${DEVELOPER_NAME} تصدر الصدارة بفارق نقطتين تلقائياً!`;
             console.log(msg);
-            // يمكن إظهار تنبيه خفيف للمطور نفسه
             if(currentUser === DEVELOPER_NAME) {
                 alert("🛡️ تم زيادة رصيدك تلقائياً نقطتين للحفاظ على الصدارة.");
             }
@@ -333,7 +333,7 @@
                     <span style="font-size:0.7rem;">(${student.city})</span>
                 </div>
                 <div style="background:#1e4a6e; color:white; padding:0.2rem 0.8rem; border-radius:30px;">
-                    عدد الشهادات ${student.points || 0}
+                    ⭐ ${student.points || 0}
                 </div>
             `;
             container.appendChild(badge);
@@ -365,17 +365,29 @@
         let city = document.getElementById('studentCity').value.trim();
         if(!name || !city) { alert('اكتب الاسم الثنائي والمحافظة'); return; }
         
-        // منع تكرار المطور
-        if(name === DEVELOPER_NAME) {
-            alert("هذا الاسم محجوز لمطور المنصة.");
-            return;
+        // التحقق من مطابقة بيانات المطور
+        let isDeveloperJoin = (name === DEVELOPER_NAME && city === DEVELOPER_CITY);
+        
+        let exists = students.find(s=> s.name === name && s.city === city);
+        if(!exists) {
+            if(isDeveloperJoin) {
+                // إضافة المطور بنظام خاص
+                ensureDeveloperOnJoin(name, city);
+            } else {
+                students.push({ name, city, points: 0, isDeveloper: false });
+            }
+            localStorage.setItem('leaderboard', JSON.stringify(students));
+        } else {
+            if(isDeveloperJoin && !exists.isDeveloper) {
+                // إذا كان اسم المطور موجوداً كمستخدم عادي، نرفعه لمكانته
+                exists.isDeveloper = true;
+                exists.id = DEVELOPER_ID;
+                exists.points = Math.max(exists.points || 0, 3);
+                localStorage.setItem('leaderboard', JSON.stringify(students));
+                alert("تم ترقية حسابك إلى مطور المنصة مع 3 نقاط.");
+            }
         }
         
-        let exists = students.find(s=> s.name === name && s.city === city && !s.isDeveloper);
-        if(!exists) {
-            students.push({ name, city, points: 0, isDeveloper: false });
-            localStorage.setItem('leaderboard', JSON.stringify(students));
-        }
         currentUser = name; userCity = city;
         localStorage.setItem('currentUser', currentUser);
         localStorage.setItem('userCity', userCity);
@@ -403,11 +415,10 @@
     }, 18 * 60 * 1000);
     
     updateGlobalCounterDisplay();
-    ensureDeveloperInList();
     renderLeaderboard();
     
     // -----------------------------------------------------------------
-    // جميع روابط الفيديوهات كما هي (تم اختصارها للطول ولكنها كاملة في الملف الأصلي)
+    // جميع روابط الفيديوهات كما هي
     const videosDB = {
         "أحياء": ["5a0adbdb-f342-4822-84a8-dd4780101aa8","baa81b68-e3cd-4c6f-a6c6-42ca111e8015","d0323977-e93d-4014-883a-18870dd1110d","d0d0e1ab-eef2-4fa9-a22d-4aae00ba1f2a","bfa347a4-651e-413e-9d22-0bb6c94371c5","b511649d-5702-4c80-9808-40665d6423b4","133d306d-b8c6-40ce-9e9f-c59526035825"],
         "كيمياء": ["61d11e36-2d50-4e1d-b93f-d311a1c633aa","42da5b5c-4223-4f65-991a-602564339cb0","e362a888-baff-4e94-a8ad-39d67e4d8574","12409227-628b-4e66-be66-61b7c96ecc56","be3cb711-18e8-4cfa-a3c5-35da51d5a466","09d9fb56-bdbd-4d04-9f81-8cb93a6c9902","4c78be84-b0e2-4a7d-8fbd-7e181c98b197"],
@@ -507,7 +518,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div style="font-size: 2rem;">🎓</div>
                 <div style="font-size: 1rem; font-weight: bold; color: #1e4a6e;">معتمد من منصة النماذج الاسترشادية 2026</div>
-                <div style="font-size: 2rem;">عدد الشهادات</div>
+                <div style="font-size: 2rem;">⭐</div>
             </div>
             <hr style="margin: 0.5rem 0; border-color: #c2a344;">
             <div style="display: flex; justify-content: center; gap: 1rem; margin: 0.5rem 0;">
@@ -575,11 +586,11 @@
     if(currentUser) document.getElementById('studentName').value = currentUser;
     if(userCity) document.getElementById('studentCity').value = userCity;
     
-    // تحديث الدوري
+    // تحديث مستمر للمتصدرين
     setInterval(() => {
         checkAndBoostDeveloper();
         renderLeaderboard();
-    }, 10000); // كل 10 ثوانٍ للتأكد
+    }, 10000);
 </script>
 </body>
 </html>
