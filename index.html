@@ -251,14 +251,6 @@
             color: #1e4a6e;
             margin-bottom: 1rem;
         }
-        .install-steps {
-            text-align: right;
-            background: #f4f7fc;
-            padding: 1rem;
-            border-radius: 20px;
-            margin: 1rem 0;
-            font-size: 0.9rem;
-        }
         .close-install {
             background: #1e4a6e;
             color: white;
@@ -297,7 +289,7 @@
 </div>
 <div class="hero">
     <h1>📚 النماذج الاسترشادية الرسمية 2026</h1>
-    <p>شاهد النموذج كاملاً لتحصل على شهادة معتمدة</p>
+    <p>شاهد النموذج لمدة 30 دقيقة لتحصل على شهادة معتمدة</p>
     <div class="live-counter">
         🟢 عدد المنضمين للمنصة: <span id="globalCounter">14</span> طالباً
     </div>
@@ -320,7 +312,7 @@
         <div id="studentListContainer" class="student-list"></div>
         <button id="previewCertificateBtn" class="preview-btn">🎓 استعرض نماذج الشهادات (للتحفيز)</button>
         <div class="condition-note">
-            🔐 للحصول على شهادة معتمدة وزيادة رصيدك، يجب مشاهدة النموذج كاملاً حتى آخر ثانية.
+            ⏱️ للحصول على شهادة معتمدة وزيادة رصيدك، يجب مشاهدة الفيديو لمدة 30 دقيقة كاملة.
         </div>
     </div>
 
@@ -336,20 +328,22 @@
 <div class="footer">
     <p>📌 مطور المنصة: <strong>زياد عماد-مطور الويب (علمي علوم)</strong></p>
     <a href="https://ls2-s.github.io/zizo/" target="_blank" class="personal-site-btn">🌐 الموقع الشخصي للمطور</a>
-    <p style="margin-top:1rem;">🔓 يتم إصدار الشهادة بعد مشاهدة كاملة للنموذج</p>
+    <p style="margin-top:1rem;">🔓 يتم إصدار الشهادة بعد مشاهدة 30 دقيقة من الفيديو</p>
 </div>
 
 <script>
-    // ======================== ريستارت كامل للوحة ========================
-    localStorage.removeItem('leaderboard');
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('userCity');
-    localStorage.removeItem('globalStudentCounter');
-    // ====================================================================
+    // ======================== لا تمسح البيانات أبداً ========================
+    // تم إزالة localStorage.removeItem بالكامل لضمان حفظ البيانات إلى الأبد
     
-    // ---------- شاشة التثبيت (تظهر أول ما يدخل المستخدم) ----------
+    // ---------- شاشة التثبيت المباشرة ----------
+    let deferredPrompt = null;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+    });
+    
     function showInstallPopup() {
-        // نتحقق إذا كان المستخدم قد شاهدها من قبل
         if(localStorage.getItem('installPopupShown') === 'true') return;
         
         const modal = document.createElement('div');
@@ -359,37 +353,36 @@
                 <div style="font-size: 3rem;">📱</div>
                 <h3>حوّل الموقع إلى تطبيق!</h3>
                 <p>يمكنك تثبيت هذا الموقع على هاتفك والوصول إليه بسهولة مثل أي تطبيق.</p>
-                <div class="install-steps">
-                    <strong>📌 خطوات التثبيت:</strong><br>
-                    • <strong>كروم (Android):</strong> اضغط على القائمة (⋮) ثم اختر "تثبيت التطبيق" أو "Add to Home screen"<br>
-                    • <strong>سفاري (iPhone):</strong> اضغط على مشاركة ⎔ ثم اختر "إلى الشاشة الرئيسية"<br>
-                    • <strong>فايرفوكس:</strong> اضغط على القائمة ثم "إضافة إلى الشاشة الرئيسية"
-                </div>
                 <div>
                     <button id="installLaterBtn" class="later-btn">تذكير لاحقاً</button>
-                    <button id="installNowBtn" class="close-install">📲 تثبيت التطبيق</button>
+                    <button id="installNowBtn" class="close-install">📲 تثبيت التطبيق مباشرة</button>
                 </div>
             </div>
         `;
         document.body.appendChild(modal);
         
-        document.getElementById('installNowBtn').addEventListener('click', () => {
+        document.getElementById('installNowBtn').addEventListener('click', async () => {
             modal.remove();
             localStorage.setItem('installPopupShown', 'true');
-            alert("لفتح قائمة التثبيت:\n• كروم: اضغط على القائمة ⋮ ثم اختر 'تثبيت التطبيق'\n• سفاري: اضغط على مشاركة ⎔ ثم 'إلى الشاشة الرئيسية'");
-            // محاولة فتح قائمة التثبيت تلقائياً إن أمكن (لنظام PWA)
-            if(window.deferredPrompt) {
-                window.deferredPrompt.prompt();
+            
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('تم تثبيت التطبيق');
+                }
+                deferredPrompt = null;
+            } else {
+                alert("متصفحك لا يدعم التثبيت المباشر، ولكن يمكنك إضافة الموقع إلى الشاشة الرئيسية يدوياً.");
             }
         });
         
         document.getElementById('installLaterBtn').addEventListener('click', () => {
             modal.remove();
-            localStorage.setItem('installPopupShown', 'false'); // ليظهر مرة أخرى لاحقاً
+            localStorage.setItem('installPopupShown', 'false');
         });
     }
     
-    // تفعيل الـ PWA لو أردت مستقبلاً
     window.addEventListener('load', () => {
         setTimeout(showInstallPopup, 1500);
     });
@@ -400,13 +393,12 @@
     const DEVELOPER_SECTION = "علمي علوم";
     const DEVELOPER_ID = "developer_zizo_unique";
     
-    // ---------- نظام المتصدرين (يبدأ من الصفر) ----------
+    // ---------- نظام المتصدرين (يحفظ للأبد) ----------
     let students = JSON.parse(localStorage.getItem('leaderboard')) || [];
     let currentUser = localStorage.getItem('currentUser') || null;
     let userCity = localStorage.getItem('userCity') || '';
     let userSection = localStorage.getItem('userSection') || '';
     
-    // دالة للتحقق من وجود المطور عند الانضمام
     function ensureDeveloperOnJoin(enteredName, enteredCity, enteredSection) {
         if (enteredName === DEVELOPER_NAME && enteredCity === DEVELOPER_CITY && enteredSection === DEVELOPER_SECTION) {
             let developer = students.find(s => s.id === DEVELOPER_ID);
@@ -431,7 +423,6 @@
         return false;
     }
     
-    // دالة لزيادة نقاط المطور تلقائياً عند المساواة
     function checkAndBoostDeveloper() {
         let developer = students.find(s => s.id === DEVELOPER_ID);
         if (!developer) return;
@@ -449,7 +440,6 @@
         }
     }
     
-    // عرض أفضل 20 طالب
     function renderLeaderboard() {
         const container = document.getElementById('studentListContainer');
         if(!container) return;
@@ -473,7 +463,7 @@
                     <span class="section-badge">${sectionIcon} ${student.section || 'غير محدد'}</span>
                 </div>
                 <div style="background:#1e4a6e; color:white; padding:0.2rem 0.8rem; border-radius:30px;">
-                    ⭐ ${student.points || 0}
+                    🎓 ${student.points || 0} شهادة
                 </div>
             `;
             container.appendChild(badge);
@@ -486,7 +476,6 @@
         localStorage.setItem('leaderboard', JSON.stringify(students));
     }
     
-    // إضافة نقاط لمستخدم عادي
     function addPointsToUser(studentName, studentCity, studentSection) {
         let userObj = students.find(s=> s.name === studentName && s.city === studentCity && s.section === studentSection && !s.isDeveloper);
         if(userObj) {
@@ -499,7 +488,6 @@
         return false;
     }
     
-    // انضمام طالب جديد
     document.getElementById('joinBtn')?.addEventListener('click', () => {
         let name = document.getElementById('studentName').value.trim();
         let city = document.getElementById('studentCity').value.trim();
@@ -535,11 +523,11 @@
         localStorage.setItem('userCity', userCity);
         localStorage.setItem('userSection', userSection);
         renderLeaderboard();
-        alert(`أهلاً ${name} من ${city} (${section}) ، سيتم احتساب النماذج التي تشاهدها كاملة.`);
+        alert(`أهلاً ${name} من ${city} (${section}) ، سيتم احتساب النماذج التي تشاهدها لمدة 30 دقيقة.`);
         checkAndBoostDeveloper();
     });
     
-    // ---------- العداد الذي يزيد كل 18 دقيقة ----------
+    // ---------- العداد الذي يزيد كل 18 دقيقة (يحفظ للأبد) ----------
     let globalStudentCount = localStorage.getItem('globalStudentCounter') ? parseInt(localStorage.getItem('globalStudentCounter')) : 14;
     const counterElement = document.getElementById('globalCounter');
     
@@ -560,8 +548,7 @@
     updateGlobalCounterDisplay();
     renderLeaderboard();
     
-    // -----------------------------------------------------------------
-    // جميع روابط الفيديوهات (مختصرة للطول ولكنها كاملة)
+    // ---------- فيديوهات المواد ----------
     const videosDB = {
         "أحياء": ["5a0adbdb-f342-4822-84a8-dd4780101aa8","baa81b68-e3cd-4c6f-a6c6-42ca111e8015","d0323977-e93d-4014-883a-18870dd1110d","d0d0e1ab-eef2-4fa9-a22d-4aae00ba1f2a","bfa347a4-651e-413e-9d22-0bb6c94371c5","b511649d-5702-4c80-9808-40665d6423b4","133d306d-b8c6-40ce-9e9f-c59526035825"],
         "كيمياء": ["61d11e36-2d50-4e1d-b93f-d311a1c633aa","42da5b5c-4223-4f65-991a-602564339cb0","e362a888-baff-4e94-a8ad-39d67e4d8574","12409227-628b-4e66-be66-61b7c96ecc56","be3cb711-18e8-4cfa-a3c5-35da51d5a466","09d9fb56-bdbd-4d04-9f81-8cb93a6c9902","4c78be84-b0e2-4a7d-8fbd-7e181c98b197"],
@@ -600,30 +587,39 @@
                 let url = `https://madrasetnaplus.eg/content-play/s3video/https:%2F%2Fmadrasetnaplus.eg%2Fs3%2Fgen%2F${vid}.mp4`;
                 let modelDiv = document.createElement('div');
                 modelDiv.className = 'model-item';
-                modelDiv.innerHTML = `<div class="model-name">📹 النموذج الاسترشادي ${idx+1}</div><div class="btn-group"><a href="${url}" class="btn btn-primary watch-btn" target="_blank" data-subject="${subject}" data-model="${idx+1}" data-url="${url}">▶️ شاهد النموذج</a></div>`;
+                modelDiv.innerHTML = `<div class="model-name">📹 النموذج الاسترشادي ${idx+1}</div><div class="btn-group"><a href="${url}" class="btn btn-primary watch-btn" target="_blank" data-subject="${subject}" data-model="${idx+1}" data-url="${url}">▶️ شاهد النموذج (30 دقيقة)</a></div>`;
                 modelsContainer.appendChild(modelDiv);
             });
         }
     }
     buildSubjects();
 
-    // نظام منح الشهادة مع إضافة النقاط
-    let watchedFlags = {};
-    function giveCertificateAndPoint(subject, modelNum, url) {
-        if(watchedFlags[url]) return;
-        if(currentUser && userCity && userSection) {
-            if(addPointsToUser(currentUser, userCity, userSection)) {
-                generateCertificate(currentUser, userCity, userSection, subject, modelNum);
-                alert(`🎉 تهانينا! تم احتساب نموذج ${subject} - ${modelNum} بعد مشاهدة كاملة. حصلت على شهادة معتمدة ونقطة.`);
-                watchedFlags[url] = true;
-            } else {
-                alert("حدث خطأ في إضافة النقاط، حاول مرة أخرى.");
-            }
-        } else {
-            alert("الرجاء الانضمام للوحة المتصدرين أولاً.");
+    // نظام منح الشهادة بعد 30 دقيقة
+    let activeTimers = {};
+    
+    function startWatchingTimer(subject, modelNum, url) {
+        if(activeTimers[url]) {
+            clearTimeout(activeTimers[url]);
         }
+        
+        // نعطي المستخدم إشعار ببدء المؤقت
+        alert(`⏱️ بدء حساب وقت مشاهدة نموذج ${subject} - ${modelNum}. مطلوب 30 دقيقة على الفيديو للحصول على الشهادة.`);
+        
+        const timer = setTimeout(() => {
+            if(currentUser && userCity && userSection) {
+                if(addPointsToUser(currentUser, userCity, userSection)) {
+                    generateCertificate(currentUser, userCity, userSection, subject, modelNum);
+                    alert(`🎉 تهانينا! بعد مشاهدة 30 دقيقة، تم احتساب نموذج ${subject} - ${modelNum} وحصلت على شهادة معتمدة.`);
+                }
+            } else {
+                alert("الرجاء الانضمام للوحة المتصدرين أولاً.");
+            }
+            delete activeTimers[url];
+        }, 30 * 60 * 1000); // 30 دقيقة
+        
+        activeTimers[url] = timer;
     }
-
+    
     document.addEventListener('click', (e) => {
         if(e.target.classList.contains('watch-btn')) {
             e.preventDefault();
@@ -631,20 +627,11 @@
             let modelNum = e.target.getAttribute('data-model');
             let url = e.target.getAttribute('data-url');
             if(!currentUser) { alert("⚠️ سجل اسمك ومحافظتك وشعبتك في لوحة المتصدرين أولاً."); return; }
-            let videoWindow = window.open(url, '_blank');
-            alert("🔔 للحصول على الشهادة المعتمدة، يجب مشاهدة الفيديو حتى النهاية.");
-            let checkInterval = setInterval(() => {
-                if(videoWindow.closed) {
-                    clearInterval(checkInterval);
-                    let confirmFinish = confirm("هل انتهيت من مشاهدة النموذج بالكامل؟");
-                    if(confirmFinish) giveCertificateAndPoint(subject, modelNum, url);
-                    else alert("يمكنك إعادة المشاهدة للحصول على الشهادة.");
-                }
-            }, 2000);
+            window.open(url, '_blank');
+            startWatchingTimer(subject, modelNum, url);
         }
     });
 
-    // الشهادة النهائية مع شعار الوزارة وتوقيع المطور
     async function generateCertificate(studentName, city, section, subject, modelNum) {
         const certDiv = document.createElement('div');
         certDiv.style.position = 'fixed';
@@ -661,7 +648,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div style="font-size: 2rem;">🎓</div>
                 <div style="font-size: 1rem; font-weight: bold; color: #1e4a6e;">معتمد من منصة النماذج الاسترشادية 2026</div>
-                <div style="font-size: 2rem;">⭐</div>
+                <div style="font-size: 2rem;">📜</div>
             </div>
             <hr style="margin: 0.5rem 0; border-color: #c2a344;">
             <div style="display: flex; justify-content: center; gap: 1rem; margin: 0.5rem 0;">
@@ -672,7 +659,7 @@
             <p style="font-size: 1.1rem;">تتشرف المنصة بمنح هذه الشهادة للطالب/الطالبة</p>
             <h2 style="color: #c97e00; margin: 0.5rem; font-size: 1.8rem;">${studentName}</h2>
             <p>من محافظة <strong>${city}</strong> - الشعبة: <strong>${section}</strong></p>
-            <p style="margin: 0.8rem;">تقديراً لإتمامه مشاهدة وحل النموذج الاسترشادي رقم <strong>${modelNum}</strong> في مادة <strong>${subject}</strong> بنجاح.</p>
+            <p style="margin: 0.8rem;">تقديراً لإتمامه مشاهدة 30 دقيقة من النموذج الاسترشادي رقم <strong>${modelNum}</strong> في مادة <strong>${subject}</strong> بنجاح.</p>
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 1.2rem;">
                 <div style="text-align: center;"><img src="https://i.imgur.com/3tVUGb2.png" style="width: 60px;"><br>ختم الاعتماد</div>
                 <div>📅 ${new Date().toLocaleDateString('ar-EG')}</div>
@@ -682,7 +669,7 @@
                 <div>توقيع المطور: <strong>زياد عماد-مطور الويب</strong></div>
                 <div><img src="https://i.imgur.com/3tVUGb2.png" style="width: 30px;"> شعار الوزارة</div>
             </div>
-            <div style="margin-top: 0.5rem; font-size: 0.7rem;">* هذه الشهادة تعبر عن اجتهاد الطالب وحضوره الجاد للفيديو التدريبي.</div>
+            <div style="margin-top: 0.5rem; font-size: 0.7rem;">* هذه الشهادة تعبر عن اجتهاد الطالب ومشاهدته الجادة للفيديو لمدة 30 دقيقة.</div>
         `;
         document.body.appendChild(certDiv);
         try {
@@ -695,7 +682,6 @@
         document.body.removeChild(certDiv);
     }
 
-    // زر معاينة الشهادة للتحفيز
     document.getElementById('previewCertificateBtn')?.addEventListener('click', () => {
         let sampleName = "اسم الطالب";
         let sampleCity = "المحافظة";
@@ -703,10 +689,9 @@
         let sampleSubject = "الأحياء";
         let sampleModel = "1";
         generateCertificate(sampleName, sampleCity, sampleSection, sampleSubject, sampleModel);
-        alert("هذه نسخة تجريبية للشهادة. احصل على شهادتك الخاصة بعد مشاهدة أي نموذج كاملاً.");
+        alert("هذه نسخة تجريبية للشهادة. احصل على شهادتك الخاصة بعد مشاهدة 30 دقيقة من أي نموذج.");
     });
 
-    // التبويب
     const tabs = document.querySelectorAll('.tab-btn');
     const scientificDiv = document.getElementById('scientific-section');
     const literaryDiv = document.getElementById('literary-section');
@@ -731,7 +716,6 @@
     if(userCity) document.getElementById('studentCity').value = userCity;
     if(userSection) document.getElementById('studentSection').value = userSection;
     
-    // تحديث مستمر
     setInterval(() => {
         checkAndBoostDeveloper();
         renderLeaderboard();
