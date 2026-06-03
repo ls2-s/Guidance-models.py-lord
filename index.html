@@ -77,7 +77,13 @@
             padding-bottom: 0.5rem;
             margin-bottom: 1rem;
         }
-        .join-form input, .join-form button {
+        .join-form {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .join-form select, .join-form input, .join-form button {
             padding: 0.5rem 1rem;
             border-radius: 40px;
             border: 1px solid #ccc;
@@ -105,6 +111,8 @@
             justify-content: space-between;
             align-items: center;
             border-right: 5px solid #f9a826;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
         .student-rank {
             background: #1e4a6e;
@@ -112,6 +120,20 @@
             padding: 0.2rem 0.7rem;
             border-radius: 30px;
             font-size: 0.8rem;
+        }
+        .student-details {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .section-badge {
+            background: #f9a826;
+            color: #1e293b;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: bold;
         }
         .preview-btn {
             background: #f9a826;
@@ -197,8 +219,68 @@
             display: inline-block;
             margin-top: 1rem;
         }
+        /* مودال التثبيت */
+        .install-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            direction: rtl;
+        }
+        .install-modal-content {
+            background: white;
+            max-width: 400px;
+            width: 90%;
+            padding: 2rem;
+            border-radius: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: bounce 0.4s ease;
+        }
+        @keyframes bounce {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .install-modal-content h3 {
+            color: #1e4a6e;
+            margin-bottom: 1rem;
+        }
+        .install-steps {
+            text-align: right;
+            background: #f4f7fc;
+            padding: 1rem;
+            border-radius: 20px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        .close-install {
+            background: #1e4a6e;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            font-weight: bold;
+        }
+        .later-btn {
+            background: transparent;
+            border: 1px solid #1e4a6e;
+            color: #1e4a6e;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
         @media (max-width: 700px) {
             .model-item { flex-direction: column; align-items: flex-start; }
+            .student-badge { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -228,6 +310,10 @@
             <div class="join-form">
                 <input type="text" id="studentName" placeholder="الاسم الثنائي" maxlength="30">
                 <input type="text" id="studentCity" placeholder="المحافظة">
+                <select id="studentSection">
+                    <option value="علمي علوم">🔬 علمي علوم</option>
+                    <option value="أدبي">📜 أدبي</option>
+                </select>
                 <button id="joinBtn">➕ انضم للمنافسة</button>
             </div>
         </div>
@@ -248,40 +334,96 @@
 </div>
 
 <div class="footer">
-    <p>📌 مطور المنصة: <strong>𝐿𝑂𝑅𝐷 𝐴𝐵𝑁 𝐴𝑆𝑌𝑈𝑇 (زياد عماد-مطور الويب)</strong></p>
-    <a href="https://ls2-s.github.io/zizo/" target="_blank" class="personal-site-btn">🌐 𝐿𝑂𝑅𝐷 𝐴𝐵𝑁 𝐴𝑆𝑌𝑈𝑇 (الموقع الشخصي)</a>
+    <p>📌 مطور المنصة: <strong>زياد عماد-مطور الويب (علمي علوم)</strong></p>
+    <a href="https://ls2-s.github.io/zizo/" target="_blank" class="personal-site-btn">🌐 الموقع الشخصي للمطور</a>
     <p style="margin-top:1rem;">🔓 يتم إصدار الشهادة بعد مشاهدة كاملة للنموذج</p>
 </div>
 
 <script>
+    // ======================== ريستارت كامل للوحة ========================
+    localStorage.removeItem('leaderboard');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('userCity');
+    localStorage.removeItem('globalStudentCounter');
+    // ====================================================================
+    
+    // ---------- شاشة التثبيت (تظهر أول ما يدخل المستخدم) ----------
+    function showInstallPopup() {
+        // نتحقق إذا كان المستخدم قد شاهدها من قبل
+        if(localStorage.getItem('installPopupShown') === 'true') return;
+        
+        const modal = document.createElement('div');
+        modal.className = 'install-modal';
+        modal.innerHTML = `
+            <div class="install-modal-content">
+                <div style="font-size: 3rem;">📱</div>
+                <h3>حوّل الموقع إلى تطبيق!</h3>
+                <p>يمكنك تثبيت هذا الموقع على هاتفك والوصول إليه بسهولة مثل أي تطبيق.</p>
+                <div class="install-steps">
+                    <strong>📌 خطوات التثبيت:</strong><br>
+                    • <strong>كروم (Android):</strong> اضغط على القائمة (⋮) ثم اختر "تثبيت التطبيق" أو "Add to Home screen"<br>
+                    • <strong>سفاري (iPhone):</strong> اضغط على مشاركة ⎔ ثم اختر "إلى الشاشة الرئيسية"<br>
+                    • <strong>فايرفوكس:</strong> اضغط على القائمة ثم "إضافة إلى الشاشة الرئيسية"
+                </div>
+                <div>
+                    <button id="installLaterBtn" class="later-btn">تذكير لاحقاً</button>
+                    <button id="installNowBtn" class="close-install">📲 تثبيت التطبيق</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        document.getElementById('installNowBtn').addEventListener('click', () => {
+            modal.remove();
+            localStorage.setItem('installPopupShown', 'true');
+            alert("لفتح قائمة التثبيت:\n• كروم: اضغط على القائمة ⋮ ثم اختر 'تثبيت التطبيق'\n• سفاري: اضغط على مشاركة ⎔ ثم 'إلى الشاشة الرئيسية'");
+            // محاولة فتح قائمة التثبيت تلقائياً إن أمكن (لنظام PWA)
+            if(window.deferredPrompt) {
+                window.deferredPrompt.prompt();
+            }
+        });
+        
+        document.getElementById('installLaterBtn').addEventListener('click', () => {
+            modal.remove();
+            localStorage.setItem('installPopupShown', 'false'); // ليظهر مرة أخرى لاحقاً
+        });
+    }
+    
+    // تفعيل الـ PWA لو أردت مستقبلاً
+    window.addEventListener('load', () => {
+        setTimeout(showInstallPopup, 1500);
+    });
+    
     // ---------- بيانات المطور ----------
     const DEVELOPER_NAME = "زياد عماد-مطور الويب";
     const DEVELOPER_CITY = "اسيوط";
+    const DEVELOPER_SECTION = "علمي علوم";
     const DEVELOPER_ID = "developer_zizo_unique";
     
-    // ---------- نظام المتصدرين ----------
+    // ---------- نظام المتصدرين (يبدأ من الصفر) ----------
     let students = JSON.parse(localStorage.getItem('leaderboard')) || [];
     let currentUser = localStorage.getItem('currentUser') || null;
     let userCity = localStorage.getItem('userCity') || '';
+    let userSection = localStorage.getItem('userSection') || '';
     
-    // دالة للتحقق من وجود المطور وإضافة نقاطه التلقائية عند الانضمام
-    function ensureDeveloperOnJoin(enteredName, enteredCity) {
-        if (enteredName === DEVELOPER_NAME && enteredCity === DEVELOPER_CITY) {
+    // دالة للتحقق من وجود المطور عند الانضمام
+    function ensureDeveloperOnJoin(enteredName, enteredCity, enteredSection) {
+        if (enteredName === DEVELOPER_NAME && enteredCity === DEVELOPER_CITY && enteredSection === DEVELOPER_SECTION) {
             let developer = students.find(s => s.id === DEVELOPER_ID);
             if (!developer) {
-                // إضافة المطور بـ 3 نقاط
                 students.push({
                     id: DEVELOPER_ID,
                     name: DEVELOPER_NAME,
                     city: DEVELOPER_CITY,
+                    section: DEVELOPER_SECTION,
                     points: 3,
                     isDeveloper: true
                 });
                 localStorage.setItem('leaderboard', JSON.stringify(students));
-                alert("👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة.");
+                alert("👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة (علمي علوم).");
             } else {
-                // التأكد من أن نقاطه لا تقل عن 3
                 if (developer.points < 3) developer.points = 3;
+                developer.section = DEVELOPER_SECTION;
                 localStorage.setItem('leaderboard', JSON.stringify(students));
             }
             return true;
@@ -297,13 +439,10 @@
         let nonDeveloper = students.filter(s => !s.isDeveloper);
         let maxOthers = Math.max(...nonDeveloper.map(s => s.points || 0), 0);
         
-        if (developer.points <= maxOthers) {
-            developer.points = maxOthers + 2; // يزيد 2 نقطة فوق أي متساوٍ
+        if (maxOthers >= developer.points) {
+            developer.points = maxOthers + 2;
             localStorage.setItem('leaderboard', JSON.stringify(students));
             renderLeaderboard();
-            // إشعار للمستخدم (يظهر للجميع)
-            let msg = `🔔 نظام الحماية: المطور ${DEVELOPER_NAME} تصدر الصدارة بفارق نقطتين تلقائياً!`;
-            console.log(msg);
             if(currentUser === DEVELOPER_NAME) {
                 alert("🛡️ تم زيادة رصيدك تلقائياً نقطتين للحفاظ على الصدارة.");
             }
@@ -316,7 +455,6 @@
         if(!container) return;
         container.innerHTML = '';
         
-        // ترتيب تنازلي
         let sorted = [...students].sort((a,b)=> (b.points||0) - (a.points||0));
         let top20 = sorted.slice(0,20);
         
@@ -326,11 +464,13 @@
             let rank = idx+1;
             let rankText = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `${rank}`));
             let developerBadge = student.isDeveloper ? ' 👑 مطور المنصة' : '';
+            let sectionIcon = student.section === 'علمي علوم' ? '🔬' : '📜';
             badge.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div class="student-details">
                     <span class="student-rank">${rankText}</span>
                     <strong>${student.name}</strong> ${developerBadge}
                     <span style="font-size:0.7rem;">(${student.city})</span>
+                    <span class="section-badge">${sectionIcon} ${student.section || 'غير محدد'}</span>
                 </div>
                 <div style="background:#1e4a6e; color:white; padding:0.2rem 0.8rem; border-radius:30px;">
                     ⭐ ${student.points || 0}
@@ -340,20 +480,20 @@
         });
         
         if(top20.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:1rem;">لا يوجد طلاب بعد، كن أول من ينضم!</div>';
+            container.innerHTML = '<div style="text-align:center; padding:1rem;">✨ لوحة المتصدرين جديدة! كن أول من ينضم.</div>';
         }
         
         localStorage.setItem('leaderboard', JSON.stringify(students));
     }
     
-    // إضافة نقاط لمستخدم عادي مع التحقق من المطور
-    function addPointsToUser(studentName, studentCity) {
-        let userObj = students.find(s=> s.name === studentName && s.city === studentCity && !s.isDeveloper);
+    // إضافة نقاط لمستخدم عادي
+    function addPointsToUser(studentName, studentCity, studentSection) {
+        let userObj = students.find(s=> s.name === studentName && s.city === studentCity && s.section === studentSection && !s.isDeveloper);
         if(userObj) {
             userObj.points = (userObj.points || 0) + 1;
             localStorage.setItem('leaderboard', JSON.stringify(students));
             renderLeaderboard();
-            checkAndBoostDeveloper(); // بعد كل إضافة نقاط، نتحقق من صدارة المطور
+            checkAndBoostDeveloper();
             return true;
         }
         return false;
@@ -363,40 +503,43 @@
     document.getElementById('joinBtn')?.addEventListener('click', () => {
         let name = document.getElementById('studentName').value.trim();
         let city = document.getElementById('studentCity').value.trim();
+        let section = document.getElementById('studentSection').value;
         if(!name || !city) { alert('اكتب الاسم الثنائي والمحافظة'); return; }
         
-        // التحقق من مطابقة بيانات المطور
-        let isDeveloperJoin = (name === DEVELOPER_NAME && city === DEVELOPER_CITY);
+        let isDeveloperJoin = (name === DEVELOPER_NAME && city === DEVELOPER_CITY && section === DEVELOPER_SECTION);
         
-        let exists = students.find(s=> s.name === name && s.city === city);
+        let exists = students.find(s=> s.name === name && s.city === city && s.section === section);
         if(!exists) {
             if(isDeveloperJoin) {
-                // إضافة المطور بنظام خاص
-                ensureDeveloperOnJoin(name, city);
+                ensureDeveloperOnJoin(name, city, section);
             } else {
-                students.push({ name, city, points: 0, isDeveloper: false });
+                students.push({ name, city, section, points: 0, isDeveloper: false });
             }
             localStorage.setItem('leaderboard', JSON.stringify(students));
         } else {
             if(isDeveloperJoin && !exists.isDeveloper) {
-                // إذا كان اسم المطور موجوداً كمستخدم عادي، نرفعه لمكانته
                 exists.isDeveloper = true;
                 exists.id = DEVELOPER_ID;
                 exists.points = Math.max(exists.points || 0, 3);
+                exists.section = DEVELOPER_SECTION;
                 localStorage.setItem('leaderboard', JSON.stringify(students));
-                alert("تم ترقية حسابك إلى مطور المنصة مع 3 نقاط.");
+                alert("تم ترقية حسابك إلى مطور المنصة مع 3 نقاط (علمي علوم).");
+            } else if (!isDeveloperJoin && exists.isDeveloper) {
+                alert("هذا الاسم محجوز لمطور المنصة.");
+                return;
             }
         }
         
-        currentUser = name; userCity = city;
+        currentUser = name; userCity = city; userSection = section;
         localStorage.setItem('currentUser', currentUser);
         localStorage.setItem('userCity', userCity);
+        localStorage.setItem('userSection', userSection);
         renderLeaderboard();
-        alert(`أهلاً ${name} من ${city} ، سيتم احتساب النماذج التي تشاهدها كاملة.`);
+        alert(`أهلاً ${name} من ${city} (${section}) ، سيتم احتساب النماذج التي تشاهدها كاملة.`);
         checkAndBoostDeveloper();
     });
     
-    // ---------- العداد الذي يزيد كل 18 دقيقة تلقائياً ----------
+    // ---------- العداد الذي يزيد كل 18 دقيقة ----------
     let globalStudentCount = localStorage.getItem('globalStudentCounter') ? parseInt(localStorage.getItem('globalStudentCounter')) : 14;
     const counterElement = document.getElementById('globalCounter');
     
@@ -418,7 +561,7 @@
     renderLeaderboard();
     
     // -----------------------------------------------------------------
-    // جميع روابط الفيديوهات كما هي
+    // جميع روابط الفيديوهات (مختصرة للطول ولكنها كاملة)
     const videosDB = {
         "أحياء": ["5a0adbdb-f342-4822-84a8-dd4780101aa8","baa81b68-e3cd-4c6f-a6c6-42ca111e8015","d0323977-e93d-4014-883a-18870dd1110d","d0d0e1ab-eef2-4fa9-a22d-4aae00ba1f2a","bfa347a4-651e-413e-9d22-0bb6c94371c5","b511649d-5702-4c80-9808-40665d6423b4","133d306d-b8c6-40ce-9e9f-c59526035825"],
         "كيمياء": ["61d11e36-2d50-4e1d-b93f-d311a1c633aa","42da5b5c-4223-4f65-991a-602564339cb0","e362a888-baff-4e94-a8ad-39d67e4d8574","12409227-628b-4e66-be66-61b7c96ecc56","be3cb711-18e8-4cfa-a3c5-35da51d5a466","09d9fb56-bdbd-4d04-9f81-8cb93a6c9902","4c78be84-b0e2-4a7d-8fbd-7e181c98b197"],
@@ -468,9 +611,9 @@
     let watchedFlags = {};
     function giveCertificateAndPoint(subject, modelNum, url) {
         if(watchedFlags[url]) return;
-        if(currentUser && userCity) {
-            if(addPointsToUser(currentUser, userCity)) {
-                generateCertificate(currentUser, userCity, subject, modelNum);
+        if(currentUser && userCity && userSection) {
+            if(addPointsToUser(currentUser, userCity, userSection)) {
+                generateCertificate(currentUser, userCity, userSection, subject, modelNum);
                 alert(`🎉 تهانينا! تم احتساب نموذج ${subject} - ${modelNum} بعد مشاهدة كاملة. حصلت على شهادة معتمدة ونقطة.`);
                 watchedFlags[url] = true;
             } else {
@@ -487,7 +630,7 @@
             let subject = e.target.getAttribute('data-subject');
             let modelNum = e.target.getAttribute('data-model');
             let url = e.target.getAttribute('data-url');
-            if(!currentUser) { alert("⚠️ سجل اسمك ومحافظتك في لوحة المتصدرين أولاً."); return; }
+            if(!currentUser) { alert("⚠️ سجل اسمك ومحافظتك وشعبتك في لوحة المتصدرين أولاً."); return; }
             let videoWindow = window.open(url, '_blank');
             alert("🔔 للحصول على الشهادة المعتمدة، يجب مشاهدة الفيديو حتى النهاية.");
             let checkInterval = setInterval(() => {
@@ -502,7 +645,7 @@
     });
 
     // الشهادة النهائية مع شعار الوزارة وتوقيع المطور
-    async function generateCertificate(studentName, city, subject, modelNum) {
+    async function generateCertificate(studentName, city, section, subject, modelNum) {
         const certDiv = document.createElement('div');
         certDiv.style.position = 'fixed';
         certDiv.style.top = '-1000px';
@@ -528,7 +671,7 @@
             <h1 style="color: #0b2b26; font-size: 2rem; margin: 1rem 0;">شهادة إتمام نموذج استرشادي</h1>
             <p style="font-size: 1.1rem;">تتشرف المنصة بمنح هذه الشهادة للطالب/الطالبة</p>
             <h2 style="color: #c97e00; margin: 0.5rem; font-size: 1.8rem;">${studentName}</h2>
-            <p>من محافظة <strong>${city}</strong></p>
+            <p>من محافظة <strong>${city}</strong> - الشعبة: <strong>${section}</strong></p>
             <p style="margin: 0.8rem;">تقديراً لإتمامه مشاهدة وحل النموذج الاسترشادي رقم <strong>${modelNum}</strong> في مادة <strong>${subject}</strong> بنجاح.</p>
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 1.2rem;">
                 <div style="text-align: center;"><img src="https://i.imgur.com/3tVUGb2.png" style="width: 60px;"><br>ختم الاعتماد</div>
@@ -536,7 +679,7 @@
                 <div>🗳️ المنصة الرسمية 2026</div>
             </div>
             <div style="margin-top: 1rem; border-top: 1px dashed #c2a344; padding-top: 0.8rem; display: flex; justify-content: space-between;">
-                <div>توقيع المطور: <strong>𝐿𝑂𝑅𝐷 𝐴𝐵𝑁 𝐴𝑆𝑌𝑈𝑇</strong></div>
+                <div>توقيع المطور: <strong>زياد عماد-مطور الويب</strong></div>
                 <div><img src="https://i.imgur.com/3tVUGb2.png" style="width: 30px;"> شعار الوزارة</div>
             </div>
             <div style="margin-top: 0.5rem; font-size: 0.7rem;">* هذه الشهادة تعبر عن اجتهاد الطالب وحضوره الجاد للفيديو التدريبي.</div>
@@ -556,9 +699,10 @@
     document.getElementById('previewCertificateBtn')?.addEventListener('click', () => {
         let sampleName = "اسم الطالب";
         let sampleCity = "المحافظة";
+        let sampleSection = "علمي علوم";
         let sampleSubject = "الأحياء";
         let sampleModel = "1";
-        generateCertificate(sampleName, sampleCity, sampleSubject, sampleModel);
+        generateCertificate(sampleName, sampleCity, sampleSection, sampleSubject, sampleModel);
         alert("هذه نسخة تجريبية للشهادة. احصل على شهادتك الخاصة بعد مشاهدة أي نموذج كاملاً.");
     });
 
@@ -585,8 +729,9 @@
 
     if(currentUser) document.getElementById('studentName').value = currentUser;
     if(userCity) document.getElementById('studentCity').value = userCity;
+    if(userSection) document.getElementById('studentSection').value = userSection;
     
-    // تحديث مستمر للمتصدرين
+    // تحديث مستمر
     setInterval(() => {
         checkAndBoostDeveloper();
         renderLeaderboard();
