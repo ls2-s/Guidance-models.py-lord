@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>النماذج الاسترشادية 2026 | ثانوية عامة</title>
-    <!-- Firebase SDKs (الإصدار الجديد) -->
     <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -77,6 +76,34 @@
             border-bottom: 2px solid #f9a826;
             padding-bottom: 0.5rem;
             margin-bottom: 1rem;
+            align-items: center;
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f0f2f5;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+        }
+        .status-light {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: gray;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        .status-light.green {
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+        .status-light.red {
+            background: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+        }
+        .status-text {
+            font-weight: bold;
         }
         .join-form {
             display: flex;
@@ -263,16 +290,20 @@
     <div id="leaderboardSection" class="leaderboard-panel">
         <div class="leaderboard-header">
             <h3>🏆 أفضل 20 طالب (لوحة المتصدرين - مركزية من Firebase)</h3>
-            <div class="join-form">
-                <input type="text" id="studentName" placeholder="الاسم الثنائي" maxlength="30">
-                <input type="text" id="studentCity" placeholder="المحافظة">
-                <select id="studentSection">
-                    <option value="علمي علوم">🔬 علمي علوم</option>
-                    <option value="أدبي">📜 أدبي</option>
-                </select>
-                <button id="joinBtn">➕ انضم للمنافسة</button>
-                <button id="refreshLeaderboardBtn" class="refresh-btn">🔄 تحديث</button>
+            <div class="status-indicator" id="firebaseStatus">
+                <div class="status-light" id="statusLight"></div>
+                <span class="status-text" id="statusText">جاري التحقق...</span>
             </div>
+        </div>
+        <div class="join-form">
+            <input type="text" id="studentName" placeholder="الاسم الثنائي" maxlength="30">
+            <input type="text" id="studentCity" placeholder="المحافظة">
+            <select id="studentSection">
+                <option value="علمي علوم">🔬 علمي علوم</option>
+                <option value="أدبي">📜 أدبي</option>
+            </select>
+            <button id="joinBtn">➕ انضم للمنافسة</button>
+            <button id="refreshLeaderboardBtn" class="refresh-btn">🔄 تحديث</button>
         </div>
         <div id="studentListContainer" class="student-list">🔄 جاري التحميل من قاعدة البيانات...</div>
         <div id="statusMessage" class="status-msg"></div>
@@ -298,7 +329,7 @@
 </div>
 
 <script>
-    // ======================== Firebase Configuration (الإعدادات الجديدة) ========================
+    // ======================== Firebase Configuration ========================
     const firebaseConfig = {
         apiKey: "AIzaSyChD9GZROeahUCiGAdf-KQZWidYrvs2mTI",
         authDomain: "website-ziad.firebaseapp.com",
@@ -313,6 +344,29 @@
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    
+    // ======================== مؤشر حالة Firebase ========================
+    const statusLight = document.getElementById('statusLight');
+    const statusText = document.getElementById('statusText');
+    
+    async function checkFirebaseConnection() {
+        try {
+            // محاولة قراءة بسيطة من قاعدة البيانات للتحقق من الاتصال
+            const testQuery = await db.collection('students').limit(1).get();
+            statusLight.className = 'status-light green';
+            statusText.innerHTML = '✅ Firebase متصل | يحفظ البيانات';
+            return true;
+        } catch (error) {
+            console.error("Firebase connection error:", error);
+            statusLight.className = 'status-light red';
+            statusText.innerHTML = '❌ Firebase غير متصل | تحقق من الإعدادات';
+            return false;
+        }
+    }
+    
+    // التحقق من الاتصال عند تحميل الصفحة وكل 30 ثانية
+    checkFirebaseConnection();
+    setInterval(checkFirebaseConnection, 30000);
     
     // ======================== بيانات المطور الثابت ========================
     const DEVELOPER_NAME = "زياد عماد-مطور الويب";
@@ -475,6 +529,7 @@
             const saved = await saveUserToFirebase(newUser);
             if(saved) {
                 showMessage(isDeveloperJoin ? "👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة." : `✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين.`);
+                await checkFirebaseConnection();
             }
         } else {
             if(isDeveloperJoin && !existingUser.isDeveloper) {
@@ -500,6 +555,7 @@
     
     document.getElementById('refreshLeaderboardBtn')?.addEventListener('click', async () => {
         await renderLeaderboard();
+        await checkFirebaseConnection();
         showMessage("✅ تم تحديث لوحة المتصدرين من قاعدة البيانات.");
     });
     
@@ -690,4 +746,4 @@
     }, 18 * 60 * 1000);
 </script>
 </body>
-    </html>
+</html>
