@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>النماذج الاسترشادية 2026 | ثانوية عامة</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Cairo', Tahoma, sans-serif;
+            background: #f4f7fc;
+            color: #1a2c3e;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #0b2b26, #1a4d44);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            align-items: center;
+            color: white;
+        }
+        .logo { font-size: 1.5rem; font-weight: bold; }
+        .logo span { color: #f9a826; }
+        .nav-links a {
+            color: white;
+            margin-right: 1rem;
+            text-decoration: none;
+            background: #2d6a4f;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .hero {
+            background: linear-gradient(120deg, #1e4a6e, #0b2b26);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+        .live-counter {
+            background: #f9a826;
+            color: #1e293b;
+            display: inline-block;
+            padding: 0.5rem 1.8rem;
+            border-radius: 80px;
+            font-weight: bold;
+            font-size: 1.6rem;
+            margin-top: 1rem;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            direction: ltr;
+        }
+        .live-counter span {
+            font-size: 2rem;
+            font-weight: 900;
+            background: #1e4a6e;
+            color: white;
+            padding: 0 0.8rem;
+            border-radius: 50px;
+            margin: 0 5px;
+        }
+        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+        .leaderboard-panel {
+            background: white;
+            border-radius: 30px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            border-bottom: 2px solid #f9a826;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .join-form input, .join-form button {
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            border: 1px solid #ccc;
+        }
+        .join-form button {
+            background: #1e4a6e;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .student-list { display: flex; flex-wrap: wrap; gap: 0.8rem; max-height: 130px; overflow-y: auto; }
+        .student-badge {
+            background: #eef2ff;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-weight: bold;
+        }
+        .preview-btn {
+            background: #f9a826;
+            color: #1e293b;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0.5rem 0;
+        }
+        .tabs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .tab-btn {
+            background: #cbd5e1;
+            border: none;
+            padding: 0.6rem 2rem;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .tab-btn.active { background: #1e4a6e; color: white; }
+        .section-content { display: none; }
+        .section-content.active-section { display: block; }
+        .subject-card {
+            background: white;
+            border-radius: 28px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .subject-header {
+            background: #1e4a6e;
+            color: white;
+            padding: 1rem 1.5rem;
+            font-size: 1.3rem;
+        }
+        .models-list { padding: 0.8rem; }
+        .model-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.7rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+        .btn-group { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+        .btn {
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-block;
+            border: none;
+        }
+        .btn-primary { background: #1e4a6e; color: white; }
+        .condition-note {
+            background: #fff3cd;
+            color: #856404;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            border-radius: 30px;
+            margin: 1rem auto;
+            max-width: 90%;
+        }
+        .footer {
+            background: #0b2b26;
+            text-align: center;
+            padding: 1.5rem;
+            color: white;
+            margin-top: 2rem;
+        }
+        .personal-site-btn {
+            background: #f9a826;
+            color: #1e293b;
+            padding: 0.6rem 1.8rem;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+        @media (max-width: 700px) {
+            .model-item { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="logo">🎓 <span>3 ثانوي 2026</span> | علمي & أدبي</div>
+    <div class="nav-links">
+        <a href="#" id="scrollLeaderboard">🏆 المتصدرين</a>
+        <a href="#" id="scrollScientific">🔬 علمي</a>
+        <a href="#" id="scrollLiterary">📜 أدبي</a>
+        <a href="https://ls2-s.github.io/zizo/" target="_blank" style="background:#f9a826; color:#1e293b;">🌐 𝐿𝑂𝑅𝐷</a>
+    </div>
+</div>
+<div class="hero">
+    <h1>📚 النماذج الاسترشادية الرسمية 2026</h1>
+    <p>شاهد النموذج كاملاً لتحصل على شهادة معتمدة</p>
+    <div class="live-counter">
+        🟢 عدد المنضمين للمنصة: <span id="globalCounter">14</span> طالباً
+    </div>
+</div>
+
+<div class="container">
+    <div id="leaderboardSection" class="leaderboard-panel">
+        <div class="leaderboard-header">
+            <h3>🏆 لوحة المتصدرين (شرف)</h3>
+            <div class="join-form">
+                <input type="text" id="studentName" placeholder="الاسم الثنائي" maxlength="30">
+                <input type="text" id="studentCity" placeholder="المحافظة">
+                <button id="joinBtn">➕ انضم للوحة</button>
+            </div>
+        </div>
+        <div id="studentListContainer" class="student-list"></div>
+        <button id="previewCertificateBtn" class="preview-btn">🎓 استعرض نماذج الشهادات (للتحفيز)</button>
+        <div class="condition-note">
+            🔐 للحصول على شهادة معتمدة وزيادة رصيدك، يجب مشاهدة النموذج كاملاً حتى آخر ثانية.
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-section="scientific">🔬 علمي علوم</button>
+        <button class="tab-btn" data-section="literary">📜 أدبي</button>
+    </div>
+
+    <div id="scientific-section" class="section-content active-section"></div>
+    <div id="literary-section" class="section-content"></div>
+</div>
+
+<div class="footer">
+    <p>📌 مطور المنصة: <strong>𝐿𝑂𝑅𝐷 𝐴𝐵𝑁 𝐴𝑆𝑌𝑈𝑇</strong></p>
+    <a href="https://ls2-s.github.io/zizo/" target="_blank" class="personal-site-btn">🌐 𝐿𝑂𝑅𝐷 𝐴𝐵𝑁 𝐴𝑆𝑌𝑈𝑇 (الموقع الشخصي)</a>
+    <p style="margin-top:1rem;">🔓 يتم إصدار الشهادة بعد مشاهدة كاملة للنموذج</p>
+</div>
+
+<script>
+    // ---------- العداد الذي يزيد كل 18 دقيقة تلقائياً (بدون نص توضيحي) ----------
+    let globalStudentCount = localStorage.getItem('globalStudentCounter') ? parseInt(localStorage.getItem('globalStudentCounter')) : 14;  // يبدأ من 14
+    const counterElement = document.getElementById('globalCounter');
+    
+    function updateGlobalCounterDisplay() {
+        counterElement.innerText = globalStudentCount;
+        localStorage.setItem('globalStudentCounter', globalStudentCount);
+    }
+    
+    function incrementCounter() {
+        globalStudentCount++;
+        updateGlobalCounterDisplay();
+    }
+    
+    // ضبط مؤقت يزيد العداد كل 18 دقيقة (1080000 مللي ثانية)
+    setInterval(() => {
+        incrementCounter();
+    }, 18 * 60 * 1000);  // 18 دقيقة
+    
+    // عند تحميل الصفحة، نعرض العدد المخزن
+    updateGlobalCounterDisplay();
+    
+    // -----------------------------------------------------------------
+    // جميع روابط الفيديوهات كما هي
+    const videosDB = {
+        "أحياء": ["5a0adbdb-f342-4822-84a8-dd4780101aa8","baa81b68-e3cd-4c6f-a6c6-42ca111e8015","d0323977-e93d-4014-883a-18870dd1110d","d0d0e1ab-eef2-4fa9-a22d-4aae00ba1f2a","bfa347a4-651e-413e-9d22-0bb6c94371c5","b511649d-5702-4c80-9808-40665d6423b4","133d306d-b8c6-40ce-9e9f-c59526035825"],
+        "كيمياء": ["61d11e36-2d50-4e1d-b93f-d311a1c633aa","42da5b5c-4223-4f65-991a-602564339cb0","e362a888-baff-4e94-a8ad-39d67e4d8574","12409227-628b-4e66-be66-61b7c96ecc56","be3cb711-18e8-4cfa-a3c5-35da51d5a466","09d9fb56-bdbd-4d04-9f81-8cb93a6c9902","4c78be84-b0e2-4a7d-8fbd-7e181c98b197"],
+        "فيزياء": ["cad3e00f-4da7-492a-9272-4f59e8ac2424","eeec949a-ab1a-4ffb-8245-b7fac59fcbbd","07f48272-1527-4c28-b314-45c0382cf96c","00c9bab3-db79-497f-bc86-5b88c320a1da","a79ba061-39ac-4ac8-99b4-1ea4d9756905","0bb0e04e-f4a8-460b-b1d2-231fd7a28c1d","96d1d819-976e-4f30-a553-bdf97a4eca64"],
+        "عربي": ["072fc543-9a64-49c6-aef3-d755cc58037c","42c913e9-3180-44f8-9ced-47ed71151d19","d09c7409-cce8-49b2-93fd-5f7b82fe68be","69335734-1b58-4b95-8d4a-5488e7c7d400","bc185ffc-d9bf-44a4-9e8c-08595264b57a","523c94fb-b1d5-4247-a10b-6acc617515c6"],
+        "إنجليزي": ["64242c06-d1b9-4c47-a962-2c15bcf9e598","b750b3ec-5042-40b8-97b2-6a149946b523","ac39fefa-adc8-4c86-b84c-6955dd8c8e33","71c8d9ff-582f-4cd5-9440-6e81afccc549","446002a6-ea3a-4f4e-8f38-c054515b8c94","d031d58d-a62d-45b9-8ba7-de02a71414a7","ac24bdac-f060-428f-b50c-4768daea60ad"],
+        "فرنساوي": ["95398fca-ec44-4eb6-8fa3-b61347f58968","e768a9c8-95b4-4532-a97d-614d8be5cc1a","4e3d2213-ef06-412b-8533-47e9c5448db5","037a04a2-cda4-48bf-bc31-51f0bf1f3626","afc512a7-e01c-4784-8ded-71a4f6e2ee98","e5643291-677f-49bb-ae85-b3c74bbf331e","41f39182-c306-4fc5-b7d5-fbf6992b3b1b"],
+        "تاريخ": ["d4172153-022f-4038-9ce2-74990fef6cc6","98c58993-ae6a-4926-9da8-456d375a91b6","78e9ebed-875c-481d-8644-23891dfa40b9","5c330968-c480-4f4e-b0a6-dbaa0240d017","2cb77971-9efa-4940-9e65-4e282b3ff7b2","56790b4a-d186-438c-acb7-46fd271c66d5","665789b1-dbb5-461a-b2d7-4570b2ba493c","d8554167-3fca-47ff-8014-bcd0cb8161d8"],
+        "جغرافيا": ["ce508ccc-2e17-4e18-87e1-bbfe0bcaa522","2d4e6fb3-624f-4a83-990a-eed2ec4ac380","6f5e9095-d019-44e9-a96f-f081f0a64787","d6279e32-8c13-4689-8788-828c751f39e0","aa0abe28-3161-41f5-97c3-a2914d847782","1c8a2a38-aaf7-427b-a83f-fc6ed6b710a4","789fd248-2deb-4ea4-b149-2a79f61b5216","ea1c38e1-b561-404c-beb1-c7edfceadc95"],
+        "إحصاء": ["d7b14881-ca2f-426b-acb5-2581d1f4fbb9","ae399e29-dfa5-497f-93b3-3be0d9312688","40e9d891-fd96-4897-a610-9f407c087773","05425d50-6d99-47bb-882c-96e27a32899e","237c805f-b759-4f4e-942c-9019c59d0ab7","d8554167-3fca-47ff-8014-bcd0cb8161d8","ea1c38e1-b561-404c-beb1-c7edfceadc95","d7b14881-ca2f-426b-acb5-2581d1f4fbb9"],
+        "عربي-أدبي": ["072fc543-9a64-49c6-aef3-d755cc58037c","42c913e9-3180-44f8-9ced-47ed71151d19","d09c7409-cce8-49b2-93fd-5f7b82fe68be","69335734-1b58-4b95-8d4a-5488e7c7d400","bc185ffc-d9bf-44a4-9e8c-08595264b57a","523c94fb-b1d5-4247-a10b-6acc617515c6"],
+        "إنجليزي-أدبي": ["64242c06-d1b9-4c47-a962-2c15bcf9e598","b750b3ec-5042-40b8-97b2-6a149946b523","ac39fefa-adc8-4c86-b84c-6955dd8c8e33","71c8d9ff-582f-4cd5-9440-6e81afccc549","446002a6-ea3a-4f4e-8f38-c054515b8c94","d031d58d-a62d-45b9-8ba7-de02a71414a7","ac24bdac-f060-428f-b50c-4768daea60ad"],
+        "فرنساوي-أدبي": ["95398fca-ec44-4eb6-8fa3-b61347f58968","e768a9c8-95b4-4532-a97d-614d8be5cc1a","4e3d2213-ef06-412b-8533-47e9c5448db5","037a04a2-cda4-48bf-bc31-51f0bf1f3626","afc512a7-e01c-4784-8ded-71a4f6e2ee98","e5643291-677f-49bb-ae85-b3c74bbf331e","41f39182-c306-4fc5-b7d5-fbf6992b3b1b"]
+    };
+
+    function buildSubjects() {
+        const scientificContainer = document.getElementById('scientific-section');
+        const literaryContainer = document.getElementById('literary-section');
+        scientificContainer.innerHTML = '';
+        literaryContainer.innerHTML = '';
+        const scientificSubjects = ["أحياء","كيمياء","فيزياء","عربي","إنجليزي","فرنساوي"];
+        const literarySubjects = ["تاريخ","جغرافيا","إحصاء","عربي-أدبي","إنجليزي-أدبي","فرنساوي-أدبي"];
+        scientificSubjects.forEach(sub => addSubjectCard(scientificContainer, sub));
+        literarySubjects.forEach(sub => addSubjectCard(literaryContainer, sub));
+    }
+
+    function addSubjectCard(parent, subject) {
+        let card = document.createElement('div');
+        card.className = 'subject-card';
+        let displayName = subject.replace("-أدبي"," (أدبي)");
+        card.innerHTML = `<div class="subject-header">${displayName}</div><div class="models-list" id="models-${subject}"></div>`;
+        parent.appendChild(card);
+        let modelsContainer = document.getElementById(`models-${subject}`);
+        if(videosDB[subject]) {
+            videosDB[subject].forEach((vid, idx) => {
+                let url = `https://madrasetnaplus.eg/content-play/s3video/https:%2F%2Fmadrasetnaplus.eg%2Fs3%2Fgen%2F${vid}.mp4`;
+                let modelDiv = document.createElement('div');
+                modelDiv.className = 'model-item';
+                modelDiv.innerHTML = `<div class="model-name">📹 النموذج الاسترشادي ${idx+1}</div><div class="btn-group"><a href="${url}" class="btn btn-primary watch-btn" target="_blank" data-subject="${subject}" data-model="${idx+1}" data-url="${url}">▶️ شاهد النموذج</a></div>`;
+                modelsContainer.appendChild(modelDiv);
+            });
+        }
+    }
+    buildSubjects();
+
+    // نظام منح الشهادة
+    let watchedFlags = {};
+    function giveCertificateAndPoint(subject, modelNum, url) {
+        if(watchedFlags[url]) return;
+        if(currentUser && userCity) {
+            addPointsToUser(currentUser, userCity);
+            generateCertificate(currentUser, userCity, subject, modelNum);
+            alert(`🎉 تهانينا! تم احتساب نموذج ${subject} - ${modelNum} بعد مشاهدة كاملة. حصلت على شهادة معتمدة ونقطة.`);
+            watchedFlags[url] = true;
+        } else {
+            alert("الرجاء الانضمام للوحة المتصدرين أولاً.");
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        if(e.target.classList.contains('watch-btn')) {
+            e.preventDefault();
+            let subject = e.target.getAttribute('data-subject');
+            let modelNum = e.target.getAttribute('data-model');
+            let url = e.target.getAttribute('data-url');
+            if(!currentUser) { alert("⚠️ سجل اسمك ومحافظتك في لوحة المتصدرين أولاً."); return; }
+            let videoWindow = window.open(url, '_blank');
+            alert("🔔 للحصول على الشهادة المعتمدة، يجب مشاهدة الفيديو حتى النهاية.");
+            let checkInterval = setInterval(() => {
+                if(videoWindow.closed) {
+                    clearInterval(checkInterval);
+                    let confirmFinish = confirm("هل انتهيت من مشاهدة النموذج بالكامل؟");
+                    if(confirmFinish) giveCertificateAndPoint(subject, modelNum, url);
+                    else alert("يمكنك إعادة المشاهدة للحصول على الشهادة.");
+                }
+            }, 2000);
+        }
+    });
+
+    // نظام المتصدرين
+    let students = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    let currentUser = localStorage.getItem('currentUser') || null;
+    let userCity = localStorage.getItem('userCity') || '';
+
+    function renderLeaderboard() {
+        const container = document.getElementById('studentListContainer');
+        if(!container) return;
+        container.innerHTML = '';
+        students.sort((a,b)=> (b.points||0) - (a.points||0));
+        students.forEach(s => {
+            let badge = document.createElement('div');
+            badge.className = 'student-badge';
+            badge.innerHTML = `🏅 ${s.name} (${s.city}) - ⭐ ${s.points || 0} نموذج مكتمل`;
+            container.appendChild(badge);
+        });
+        localStorage.setItem('leaderboard', JSON.stringify(students));
+    }
+
+    document.getElementById('joinBtn')?.addEventListener('click', () => {
+        let name = document.getElementById('studentName').value.trim();
+        let city = document.getElementById('studentCity').value.trim();
+        if(!name || !city) { alert('اكتب الاسم الثنائي والمحافظة'); return; }
+        let exists = students.find(s=> s.name === name && s.city === city);
+        if(!exists) students.push({ name, city, points: 0 });
+        currentUser = name; userCity = city;
+        localStorage.setItem('currentUser', currentUser);
+        localStorage.setItem('userCity', userCity);
+        localStorage.setItem('leaderboard', JSON.stringify(students));
+        renderLeaderboard();
+        alert(`أهلاً ${name} من ${city} ، سيتم احتساب النماذج التي تشاهدها كاملة.`);
+    });
+
+    function addPointsToUser(studentName, studentCity) {
+        let userObj = students.find(s=> s.name === studentName && s.city === studentCity);
+        if(userObj) { userObj.points++; localStorage.setItem('leaderboard', JSON.stringify(students)); renderLeaderboard(); }
+    }
+
+    // الشهادة النهائية مع شعار الوزارة وتوقيع المطور
+    async function generateCertificate(studentName, city, subject, modelNum) {
+        const certDiv = document.createElement('div');
+        certDiv.style.position = 'fixed';
+        certDiv.style.top = '-1000px';
+        certDiv.style.width = '800px';
+        certDiv.style.background = 'linear-gradient(135deg, #fff9e8, #fff0d0)';
+        certDiv.style.padding = '2rem';
+        certDiv.style.borderRadius = '30px';
+        certDiv.style.textAlign = 'center';
+        certDiv.style.border = '5px double #c2a344';
+        certDiv.style.fontFamily = 'Cairo, Tahoma';
+        certDiv.style.boxShadow = '0 25px 45px rgba(0,0,0,0.3)';
+        certDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 2rem;">🎓</div>
+                <div style="font-size: 1rem; font-weight: bold; color: #1e4a6e;">معتمد من منصة النماذج الاسترشادية 2026</div>
+                <div style="font-size: 2rem;">⭐</div>
+            </div>
+            <hr style="margin: 0.5rem 0; border-color: #c2a344;">
+            <div style="display: flex; justify-content: center; gap: 1rem; margin: 0.5rem 0;">
+                <img src="https://i.imgur.com/3tVUGb2.png" style="width: 50px;">
+                <span style="font-weight: bold;">وزارة التربية والتعليم</span>
+            </div>
+            <h1 style="color: #0b2b26; font-size: 2rem; margin: 1rem 0;">شهادة إتمام نموذج استرشادي</h1>
+            <p style="font-size: 1.1rem;">تتشرف المنصة بمنح هذه الشهادة للطالب/الطالبة</p>
+            <h2 style="color: #c97e00; margin: 0.5rem; font-size: 1.8rem;">${studentName}</h2>
+            <p>من محافظة <strong>${city}</strong></p>
+            <p style="margin: 0.8rem;">تقديراً لإتمامه مشاهدة وحل النموذج الاسترشادي رقم <strong>${modelNum}</strong> في مادة <strong>${subject}</strong> بنجاح.</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 1.2rem;">
+                <div style="text-align: center;"><img src="https://i.imgur.com/3tVUGb2.png" style="width: 60px;"><br>ختم الاعتماد</div>
+                <div>📅 ${new Date().toLocaleDateString('ar-EG')}</div>
+                <div>🗳️ المنصة الرسمية 2026</div>
+            </div>
+            <div style="margin-top: 1rem; border-top: 1px dashed #c2a344; padding-top: 0.8rem; display: flex; justify-content: space-between;">
+                <div>توقيع المطور: <strong>𝐿𝑂𝑅𝐷 𝐴𝐵𝑁 𝐴𝑆𝑌𝑈𝑇</strong></div>
+                <div><img src="https://i.imgur.com/3tVUGb2.png" style="width: 30px;"> شعار الوزارة</div>
+            </div>
+            <div style="margin-top: 0.5rem; font-size: 0.7rem;">* هذه الشهادة تعبر عن اجتهاد الطالب وحضوره الجاد للفيديو التدريبي.</div>
+        `;
+        document.body.appendChild(certDiv);
+        try {
+            const canvas = await html2canvas(certDiv, { scale: 2 });
+            const link = document.createElement('a');
+            link.download = `certificate_${studentName}_${subject}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        } catch(e) { alert('يمكنك التقاط لقطة شاشة للشهادة.'); }
+        document.body.removeChild(certDiv);
+    }
+
+    // زر معاينة الشهادة للتحفيز
+    document.getElementById('previewCertificateBtn')?.addEventListener('click', () => {
+        let sampleName = "اسم الطالب";
+        let sampleCity = "المحافظة";
+        let sampleSubject = "الأحياء";
+        let sampleModel = "1";
+        generateCertificate(sampleName, sampleCity, sampleSubject, sampleModel);
+        alert("هذه نسخة تجريبية للشهادة. احصل على شهادتك الخاصة بعد مشاهدة أي نموذج كاملاً.");
+    });
+
+    // التبويب
+    const tabs = document.querySelectorAll('.tab-btn');
+    const scientificDiv = document.getElementById('scientific-section');
+    const literaryDiv = document.getElementById('literary-section');
+    tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabs.forEach(b=> b.classList.remove('active'));
+            btn.classList.add('active');
+            if(btn.getAttribute('data-section') === 'scientific') {
+                scientificDiv.classList.add('active-section');
+                literaryDiv.classList.remove('active-section');
+            } else {
+                literaryDiv.classList.add('active-section');
+                scientificDiv.classList.remove('active-section');
+            }
+        });
+    });
+    document.getElementById('scrollLeaderboard')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('leaderboardSection')?.scrollIntoView({behavior:'smooth'}); });
+    document.getElementById('scrollScientific')?.addEventListener('click', (e) => { e.preventDefault(); scientificDiv.scrollIntoView({behavior:'smooth'}); });
+    document.getElementById('scrollLiterary')?.addEventListener('click', (e) => { e.preventDefault(); literaryDiv.scrollIntoView({behavior:'smooth'}); });
+
+    renderLeaderboard();
+    if(currentUser) document.getElementById('studentName').value = currentUser;
+    if(userCity) document.getElementById('studentCity').value = userCity;
+</script>
+</body>
+</html>
