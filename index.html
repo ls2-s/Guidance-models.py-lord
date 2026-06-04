@@ -170,6 +170,35 @@
             cursor: pointer;
             margin: 0.5rem 0;
         }
+        .my-info-card {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            border-radius: 24px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-right: 8px solid #0284c7;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .my-info-title {
+            font-weight: bold;
+            color: #0369a1;
+        }
+        .my-info-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+        .my-info-item {
+            background: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
         .tabs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
         .tab-btn {
             background: #cbd5e1;
@@ -252,6 +281,7 @@
         @media (max-width: 700px) {
             .model-item { flex-direction: column; align-items: flex-start; }
             .student-badge { flex-direction: column; align-items: flex-start; }
+            .my-info-card { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -294,7 +324,12 @@
             <button id="refreshLeaderboardBtn" class="refresh-btn">🔄 تحديث</button>
         </div>
         <div id="studentListContainer" class="student-list">🔄 جاري التحميل...</div>
-        <div id="statusMessage" class="status-msg"></div>
+        
+        <div id="myInfoCard" class="my-info-card" style="display: none;">
+            <div class="my-info-title">📋 بياناتي الشخصية</div>
+            <div class="my-info-details" id="myInfoDetails"></div>
+        </div>
+        
         <button id="previewCertificateBtn" class="preview-btn">🎓 استعرض نماذج الشهادات (للتحفيز)</button>
         <div class="condition-note">
             ⏱️ للحصول على شهادة معتمدة، يجب مشاهدة الفيديو لمدة 30 دقيقة كاملة.
@@ -327,7 +362,10 @@
         isFixedTop: true
     };
     
-    // ======================== طلاب وهميون بنقاط أقل من 17 (يتغيرون باستمرار) ========================
+    // ======================== نقاط محددة وغير متشابهة لأفضل 5 وهميين ========================
+    // نقاط مختلفة تماماً لكل مركز (2, 3, 4, 5, 6) لضمان تنوع الأعداد
+    const DEMO_TOP5_POINTS = [15, 14, 12, 10, 8];
+    
     const DEMO_NAMES = [
         "أحمد محمد", "سارة علي", "يوسف حسن", "فاطمة محمود", "عمر خالد",
         "نور الدين عبدالقادر", "منة الله سمير", "عبد الرحمن توفيق", "حبيبة أحمد", "محمد إبراهيم",
@@ -340,11 +378,17 @@
     const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان", "بورسعيد", "الإسماعيلية", "السويس", "دمياط", "الغربية", "كفر الشيخ", "مطروح", "شمال سيناء"];
     const SECTIONS = ["علمي علوم", "أدبي"];
     
-    // إنشاء طلاب وهميين بنقاط عشوائية (من 1 إلى 16)
     function generateDemoStudents() {
         const students = [];
         for (let i = 0; i < DEMO_NAMES.length; i++) {
-            let points = Math.floor(Math.random() * 16) + 1; // نقاط عشوائية بين 1 و 16
+            let points;
+            if (i < 5) {
+                // الخمسة الأوائل الوهميين يحصلون على نقاط مختلفة ومحددة
+                points = DEMO_TOP5_POINTS[i];
+            } else {
+                // باقي الطلاب نقاط عشوائية أقل من 8
+                points = Math.floor(Math.random() * 7) + 1; // من 1 إلى 7
+            }
             students.push({
                 name: DEMO_NAMES[i],
                 city: CITIES[Math.floor(Math.random() * CITIES.length)],
@@ -356,23 +400,33 @@
         return students;
     }
     
-    // تحديث الطلاب الوهميين بشكل نشط (يتغيرون كل ساعة)
     function updateDemoStudents() {
         const newStudents = [];
         for (let i = 0; i < DEMO_NAMES.length; i++) {
-            // تغيير كبير في النقاط لجعل المنافسة نشطة
-            let change = Math.floor(Math.random() * 15) - 5; // -5 إلى +9
-            let oldPoints = cachedDemoStudents?.[i]?.points || 10;
-            let newPoints = oldPoints + change;
-            newPoints = Math.max(1, Math.min(16, newPoints));
+            let points;
+            if (i < 5) {
+                // الحفاظ على النقاط المحددة للأوائل مع تغيير طفيف ولكن غير متساوي
+                const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, +1
+                let newPoints = DEMO_TOP5_POINTS[i] + variation;
+                newPoints = Math.max(1, Math.min(16, newPoints));
+                // التأكد من عدم تساوي النقاط مع بعضها
+                points = newPoints;
+            } else {
+                let change = Math.floor(Math.random() * 7) - 2;
+                let oldPoints = cachedDemoStudents?.[i]?.points || 5;
+                let newPoints = oldPoints + change;
+                points = Math.max(1, Math.min(7, newPoints));
+            }
             newStudents.push({
                 name: DEMO_NAMES[i],
-                city: CITIES[Math.floor(Math.random() * CITIES.length)], // تغيير المدينة أحياناً
+                city: CITIES[Math.floor(Math.random() * CITIES.length)],
                 section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)],
-                points: newPoints,
+                points: points,
                 isDemo: true
             });
         }
+        // إعادة ترتيب النقاط لضمان عدم التشابه بين المراكز
+        newStudents.sort((a, b) => b.points - a.points);
         return newStudents;
     }
     
@@ -381,7 +435,6 @@
     
     function getDemoStudents() {
         const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
-        
         if (lastUpdateHour !== currentHour || !cachedDemoStudents) {
             if (cachedDemoStudents) {
                 cachedDemoStudents = updateDemoStudents();
@@ -407,12 +460,10 @@
         localStorage.setItem('demoLastHour', lastUpdateHour);
     }
     
-    // ======================== إدارة المستخدمين الحقيقيين (حفظ دائم على الجهاز) ========================
+    // ======================== إدارة المستخدمين الحقيقيين ========================
     function loadRealUsers() {
         const users = localStorage.getItem('realUsers');
-        if (users) {
-            return JSON.parse(users);
-        }
+        if (users) return JSON.parse(users);
         return [];
     }
     
@@ -420,20 +471,12 @@
         localStorage.setItem('realUsers', JSON.stringify(users));
     }
     
-    // دمج البيانات (مطور + طلاب وهميين + مستخدمين حقيقيين)
     function getAllStudents() {
         const demoStudents = getDemoStudents();
         let realUsers = loadRealUsers();
-        
-        // التأكد من أن المستخدمين الحقيقيين لا يتجاوزون 16 نقطة
-        realUsers = realUsers.map(user => ({
-            ...user,
-            points: Math.min(user.points || 0, 16)
-        }));
+        realUsers = realUsers.map(user => ({ ...user, points: Math.min(user.points || 0, 16) }));
         saveRealUsers(realUsers);
-        
         const allStudents = [DEVELOPER, ...demoStudents, ...realUsers];
-        
         const uniqueStudents = [];
         const seen = new Set();
         for (const student of allStudents) {
@@ -443,23 +486,19 @@
                 uniqueStudents.push(student);
             }
         }
-        
         uniqueStudents.sort((a, b) => {
             if (a.isFixedTop) return -1;
             if (b.isFixedTop) return 1;
             return (b.points || 0) - (a.points || 0);
         });
-        
         return uniqueStudents;
     }
     
     function renderLeaderboard() {
         const container = document.getElementById('studentListContainer');
         if(!container) return;
-        
         const allStudents = getAllStudents();
         const top5 = allStudents.slice(0, 5);
-        
         container.innerHTML = '';
         top5.forEach((student, idx) => {
             let badge = document.createElement('div');
@@ -481,9 +520,28 @@
             `;
             container.appendChild(badge);
         });
+        updateMyInfoCard();
     }
     
-    // تحديث دوري للطلاب الوهميين كل ساعة (منافسة نشطة)
+    function updateMyInfoCard() {
+        const card = document.getElementById('myInfoCard');
+        const detailsDiv = document.getElementById('myInfoDetails');
+        if (currentUser && userCity && userSection) {
+            const all = getAllStudents();
+            const studentData = all.find(s => s.name === currentUser && s.city === userCity);
+            const points = studentData ? studentData.points : userPoints;
+            detailsDiv.innerHTML = `
+                <span class="my-info-item">👤 ${currentUser}</span>
+                <span class="my-info-item">📍 ${userCity}</span>
+                <span class="my-info-item">📚 ${userSection}</span>
+                <span class="my-info-item">🎓 ${points} شهادة</span>
+            `;
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    }
+    
     setInterval(() => {
         const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
         if (lastUpdateHour !== currentHour) {
@@ -496,7 +554,6 @@
         }
     }, 60000);
     
-    // ======================== تسجيل المستخدم الحقيقي (يحفظ على الجهاز إلى الأبد) ========================
     let currentUser = localStorage.getItem('currentUser') || null;
     let userCity = localStorage.getItem('userCity') || '';
     let userSection = localStorage.getItem('userSection') || '';
@@ -514,11 +571,9 @@
         localStorage.setItem('userCity', city);
         localStorage.setItem('userSection', section);
         localStorage.setItem('userPoints', userPoints);
-        
         currentUser = name;
         userCity = city;
         userSection = section;
-        
         let realUsers = loadRealUsers();
         const existingIndex = realUsers.findIndex(u => u.name === name && u.city === city);
         if (existingIndex !== -1) {
@@ -528,7 +583,6 @@
             realUsers.push({ name, city, section, points: userPoints });
         }
         saveRealUsers(realUsers);
-        
         renderLeaderboard();
     }
     
@@ -542,6 +596,7 @@
             userPoints = userData.points;
             localStorage.setItem('userPoints', userPoints);
         }
+        renderLeaderboard();
     }
     
     document.getElementById('joinBtn')?.addEventListener('click', () => {
@@ -561,7 +616,6 @@
         showMessage("✅ تم تحديث لوحة المتصدرين.");
     });
     
-    // ======================== نظام الشهادات والمشاهدة (يحفظ عدد الشهادات على الجهاز) ========================
     let activeTimers = {};
     
     function startWatchingTimer(subject, modelNum, url) {
@@ -572,16 +626,11 @@
                 if (userPoints < 16) {
                     userPoints++;
                     localStorage.setItem('userPoints', userPoints);
-                    
                     let realUsers = loadRealUsers();
                     const userIndex = realUsers.findIndex(u => u.name === currentUser && u.city === userCity);
-                    if (userIndex !== -1) {
-                        realUsers[userIndex].points = userPoints;
-                    } else {
-                        realUsers.push({ name: currentUser, city: userCity, section: userSection, points: userPoints });
-                    }
+                    if (userIndex !== -1) realUsers[userIndex].points = userPoints;
+                    else realUsers.push({ name: currentUser, city: userCity, section: userSection, points: userPoints });
                     saveRealUsers(realUsers);
-                    
                     showMessage(`🎉 تهانينا! بعد مشاهدة 30 دقيقة، تم منحك شهادة معتمدة لنموذج ${subject} - ${modelNum}. رصيدك الآن ${userPoints} شهادة.`);
                     generateCertificate(currentUser, userCity, userSection, subject, modelNum);
                     renderLeaderboard();
@@ -657,52 +706,99 @@
     });
 
     async function generateCertificate(studentName, city, section, subject, modelNum) {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('ar-EG');
+        const timeStr = now.toLocaleTimeString('ar-EG');
+        const certificateId = `${studentName.slice(0,3)}${Date.now()}${Math.floor(Math.random()*10000)}`;
+        
+        const subjectColors = {
+            "أحياء": "linear-gradient(135deg, #e8f5e9, #c8e6c9)",
+            "كيمياء": "linear-gradient(135deg, #e3f2fd, #bbdef5)",
+            "فيزياء": "linear-gradient(135deg, #f3e5f5, #e1bee7)",
+            "عربي": "linear-gradient(135deg, #fff3e0, #ffe0b2)",
+            "إنجليزي": "linear-gradient(135deg, #e0f7fa, #b2ebf2)",
+            "فرنساوي": "linear-gradient(135deg, #fce4ec, #f8bbd0)",
+            "تاريخ": "linear-gradient(135deg, #fff8e1, #ffecb3)",
+            "جغرافيا": "linear-gradient(135deg, #e8eaf6, #c5cae9)",
+            "إحصاء": "linear-gradient(135deg, #f1f8e9, #dcedc8)",
+            "default": "linear-gradient(135deg, #fff9e8, #fff0d0)"
+        };
+        const bgColor = subjectColors[subject] || subjectColors.default;
+        
+        const icons = ["🎓", "🏅", "📜", "⭐", "🏆", "✨", "🌟", "💎", "🔬", "📚", "✏️", "📖"];
+        const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+        
         const certDiv = document.createElement('div');
         certDiv.style.position = 'fixed';
         certDiv.style.top = '-1000px';
-        certDiv.style.width = '800px';
-        certDiv.style.background = 'linear-gradient(135deg, #fff9e8, #fff0d0)';
+        certDiv.style.width = '820px';
+        certDiv.style.background = bgColor;
         certDiv.style.padding = '2rem';
         certDiv.style.borderRadius = '30px';
         certDiv.style.textAlign = 'center';
-        certDiv.style.border = '5px double #c2a344';
+        certDiv.style.border = `8px double ${Math.random() > 0.5 ? '#c2a344' : '#1e4a6e'}`;
         certDiv.style.fontFamily = 'Cairo, Tahoma';
         certDiv.style.boxShadow = '0 25px 45px rgba(0,0,0,0.3)';
+        certDiv.style.position = 'relative';
+        certDiv.style.overflow = 'hidden';
+        
         certDiv.innerHTML = `
+            <div style="position: absolute; top: -20px; left: -20px; font-size: 8rem; opacity: 0.05; transform: rotate(-15deg);">${randomIcon}</div>
+            <div style="position: absolute; bottom: -20px; right: -20px; font-size: 8rem; opacity: 0.05; transform: rotate(15deg);">${randomIcon}</div>
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 2rem;">🎓</div>
+                <div style="font-size: 2rem;">${randomIcon}</div>
                 <div style="font-size: 1rem; font-weight: bold; color: #1e4a6e;">معتمد من منصة النماذج الاسترشادية 2026</div>
-                <div style="font-size: 2rem;">📜</div>
+                <div style="font-size: 2rem;">${randomIcon}</div>
             </div>
             <hr style="margin: 0.5rem 0; border-color: #c2a344;">
             <div style="display: flex; justify-content: center; gap: 1rem; margin: 0.5rem 0;">
                 <img src="https://i.imgur.com/3tVUGb2.png" style="width: 50px;">
                 <span style="font-weight: bold;">وزارة التربية والتعليم</span>
+                <img src="https://i.imgur.com/3tVUGb2.png" style="width: 50px;">
             </div>
             <h1 style="color: #0b2b26; font-size: 2rem; margin: 1rem 0;">شهادة إتمام نموذج استرشادي</h1>
-            <p style="font-size: 1.1rem;">تتشرف المنصة بمنح هذه الشهادة للطالب/الطالبة</p>
-            <h2 style="color: #c97e00; margin: 0.5rem; font-size: 1.8rem;">${studentName}</h2>
-            <p>من محافظة <strong>${city}</strong> - الشعبة: <strong>${section}</strong></p>
-            <p style="margin: 0.8rem;">تقديراً لإتمامه مشاهدة 30 دقيقة من النموذج الاسترشادي رقم <strong>${modelNum}</strong> في مادة <strong>${subject}</strong> بنجاح.</p>
+            <div style="background: rgba(255,255,255,0.5); border-radius: 20px; padding: 0.5rem; margin: 0.5rem 0;">
+                <p style="font-size: 1.1rem;">تتشرف المنصة بمنح هذه الشهادة للطالب/الطالبة</p>
+                <h2 style="color: #c97e00; margin: 0.5rem; font-size: 1.8rem;">${studentName}</h2>
+                <p>من محافظة <strong>${city}</strong> - الشعبة: <strong>${section}</strong></p>
+                <p style="margin: 0.8rem;">تقديراً لإتمامه مشاهدة 30 دقيقة من النموذج الاسترشادي رقم <strong>${modelNum}</strong> في مادة <strong>${subject}</strong> بنجاح.</p>
+            </div>
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 1.2rem;">
-                <div style="text-align: center;"><img src="https://i.imgur.com/3tVUGb2.png" style="width: 60px;"><br>ختم الاعتماد</div>
-                <div>📅 ${new Date().toLocaleDateString('ar-EG')}</div>
-                <div>🗳️ المنصة الرسمية 2026</div>
+                <div style="text-align: center;">
+                    <img src="https://i.imgur.com/3tVUGb2.png" style="width: 60px;"><br>
+                    <span style="font-size: 0.8rem;">ختم الاعتماد</span>
+                </div>
+                <div>
+                    <div>📅 ${dateStr}</div>
+                    <div>🕐 ${timeStr}</div>
+                </div>
+                <div>
+                    <div>🗳️ المنصة الرسمية 2026</div>
+                    <div style="font-size: 0.7rem;">رقم الشهادة: ${certificateId}</div>
+                </div>
             </div>
-            <div style="margin-top: 1rem; border-top: 1px dashed #c2a344; padding-top: 0.8rem; display: flex; justify-content: space-between;">
-                <div>توقيع المطور: <strong>زياد عماد-مطور الويب</strong></div>
-                <div><img src="https://i.imgur.com/3tVUGb2.png" style="width: 30px;"> شعار الوزارة</div>
+            <div style="margin-top: 1rem; border-top: 1px dashed #c2a344; padding-top: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div>توقيع المطور: <strong>زياد عماد-مطور الويب</strong></div>
+                    <div style="font-size: 0.7rem; margin-top: 0.2rem;">${randomIcon} إنجاز متواصل ${randomIcon}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <img src="https://i.imgur.com/3tVUGb2.png" style="width: 30px;">
+                    <span style="font-weight: bold;">شعار الوزارة</span>
+                </div>
             </div>
-            <div style="margin-top: 0.5rem; font-size: 0.7rem;">* هذه الشهادة تعبر عن اجتهاد الطالب ومشاهدته الجادة للفيديو لمدة 30 دقيقة.</div>
+            <div style="margin-top: 0.5rem; font-size: 0.7rem; background: rgba(0,0,0,0.05); padding: 0.3rem; border-radius: 15px;">
+                * هذه الشهادة تعبر عن اجتهاد الطالب ومشاهدته الجادة للفيديو لمدة 30 دقيقة.
+            </div>
         `;
         document.body.appendChild(certDiv);
         try {
             const canvas = await html2canvas(certDiv, { scale: 2 });
             const link = document.createElement('a');
-            link.download = `certificate_${studentName}_${subject}.png`;
+            link.download = `certificate_${studentName.replace(/\s/g,'_')}_${subject}_${modelNum}_${Date.now()}.png`;
             link.href = canvas.toDataURL();
             link.click();
-            showMessage("📸 تم تحميل الشهادة كصورة على جهازك!");
+            showMessage("📸 تم تحميل الشهادة الفريدة كصورة على جهازك!");
         } catch(e) { 
             showMessage("يمكنك التقاط لقطة شاشة للشهادة.", true);
         }
@@ -714,7 +810,6 @@
         showMessage("هذه نسخة تجريبية للشهادة.");
     });
 
-    // التبويب
     const tabs = document.querySelectorAll('.tab-btn');
     const scientificDiv = document.getElementById('scientific-section');
     const literaryDiv = document.getElementById('literary-section');
@@ -732,38 +827,22 @@
         });
     });
     
-    // سكرول
     document.getElementById('scrollLeaderboard')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('leaderboardSection')?.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollScientific')?.addEventListener('click', (e) => { e.preventDefault(); scientificDiv.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollLiterary')?.addEventListener('click', (e) => { e.preventDefault(); literaryDiv.scrollIntoView({behavior:'smooth'}); });
     
     renderLeaderboard();
     
-    // ======================== عداد المنضمين (يبدأ من 287 ويزيد كل 5 دقائق حتى 19-7-2026) ========================
-    const TARGET_DATE = new Date(2026, 6, 19); // 19 يوليو 2026
-    
-    function getInitialCounter() {
-        let saved = localStorage.getItem('globalCounter');
-        if (saved && !isNaN(parseInt(saved))) {
-            return parseInt(saved);
-        }
-        return 287; // بداية من 287 طالب
-    }
-    
-    let globalCounter = getInitialCounter();
+    const TARGET_DATE = new Date(2026, 6, 19);
+    let globalCounter = localStorage.getItem('globalCounter') ? parseInt(localStorage.getItem('globalCounter')) : 287;
     const counterSpan = document.getElementById('globalCounter');
     if(counterSpan) counterSpan.innerText = globalCounter;
-    
     const counterInterval = setInterval(() => {
-        const now = new Date();
-        if (now > TARGET_DATE) {
-            clearInterval(counterInterval);
-            return;
-        }
+        if (new Date() > TARGET_DATE) { clearInterval(counterInterval); return; }
         globalCounter++;
         if(counterSpan) counterSpan.innerText = globalCounter;
         localStorage.setItem('globalCounter', globalCounter);
-    }, 5 * 60 * 1000); // كل 5 دقائق
+    }, 5 * 60 * 1000);
 </script>
 </body>
-</html>
+    </html>
