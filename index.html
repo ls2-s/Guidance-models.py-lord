@@ -300,14 +300,14 @@
     <h1>📚 النماذج الاسترشادية الرسمية 2026</h1>
     <p>شاهد النموذج لمدة 30 دقيقة لتحصل على شهادة معتمدة</p>
     <div class="live-counter">
-        🟢 عدد المنضمين للمنصة: <span id="globalCounter">0</span> طالباً
+        🟢 عدد المنضمين للمنصة: <span id="globalCounter">287</span> طالباً
     </div>
 </div>
 
 <div class="container">
     <div id="leaderboardSection" class="leaderboard-panel">
         <div class="leaderboard-header">
-            <h3>🏆 أفضل 5 طلاب (تحديث النقاط اليومي)</h3>
+            <h3>🏆 أفضل 5 طلاب</h3>
             <div class="status-indicator">
                 <div class="status-light"></div>
                 <span class="status-text">✅ متصدر المنصة: زياد عماد</span>
@@ -352,150 +352,112 @@
 </div>
 
 <script>
-    // تاريخ بدء العد (لحساب عدد الأيام المنقضية)
-    const START_DATE = new Date(2026, 5, 1); // 1 يونيو 2026
-    
-    // دالة لحساب عدد الأيام المنقضية (حتى 25 يوم)
-    function getDaysPassed() {
-        const now = new Date();
-        const diffTime = Math.abs(now - START_DATE);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return Math.min(diffDays, 25); // حد أقصى 25 يوم
-    }
-    
-    // دالة لحساب النقاط بناءً على اليوم
-    function calculatePoints(startPoint, endPoint, day) {
-        const totalIncrease = endPoint - startPoint;
-        const increasePerDay = totalIncrease / 25;
-        return Math.floor(startPoint + (increasePerDay * day));
-    }
-    
-    // النقاط المستهدفة بعد 25 يوم
-    const TARGET_POINTS = {
-        developer: 85,
-        rank2: 78,
-        rank3: 72,
-        rank4: 67,
-        rank5: 62
-    };
-    
-    // النقاط الحالية بناءً على اليوم الحالي
-    const currentDay = getDaysPassed();
-    
+    // ======================== بيانات المطور ========================
     let DEVELOPER = {
         name: "زياد عماد-مطور الويب",
         city: "اسيوط",
         section: "علمي علوم",
-        points: calculatePoints(13, TARGET_POINTS.developer, currentDay),
-        isDeveloper: true,
-        isFixedTop: true
+        points: 17,
+        isDeveloper: true
     };
     
-    // نقاط المراكز 2-5 الثابتة (ستتغير يومياً)
-    let rank2Points = calculatePoints(11, TARGET_POINTS.rank2, currentDay);
-    let rank3Points = calculatePoints(10, TARGET_POINTS.rank3, currentDay);
-    let rank4Points = calculatePoints(9, TARGET_POINTS.rank4, currentDay);
-    let rank5Points = calculatePoints(8, TARGET_POINTS.rank5, currentDay);
+    // ======================== أسماء بنات (اسم + اسم الأب) 75% من الأسماء ========================
+    const FEMALE_FIRST = ["نور", "مريم", "سارة", "فاطمة", "حبيبة", "جنى", "ملك", "لينة", "تيا", "شهد", "روان", "نورا", "جودي", "فريدة", "منة", "سلمى", "رنا", "ليلى", "دينا", "آية", "ماريا", "كنزي", "جاسمن", "سندس", "تولين"];
+    const FEMALE_LAST = ["محمد", "أحمد", "علي", "حسن", "حسين", "محمود", "إبراهيم", "يوسف", "كريم", "طارق", "خالد", "سعيد", "عمرو", "مصطفى", "عبدالله", "نور", "شادي", "رامي", "هاني", "مروان"];
     
-    // ======================== أسماء طلاب وهمية ========================
-    const FIRST_NAMES = ["أحمد", "محمد", "عبدالله", "عمر", "علي", "حسن", "حسين", "محمود", "إبراهيم", "إسماعيل", "يوسف", "ياسين", "مصطفى", "كريم", "طارق", "خالد", "سعيد", "ماجد", "سامر", "باسل"];
-    const LAST_NAMES = ["محمد", "أحمد", "علي", "حسن", "حسين", "محمود", "إبراهيم", "يوسف", "كريم", "طارق", "خالد", "سعيد", "ماجد", "سامر", "باسل", "نور", "شادي", "رامي", "هاني", "مروان"];
+    // أسماء ذكور 25%
+    const MALE_FIRST = ["أحمد", "محمد", "عبدالله", "عمر", "علي", "حسن", "حسين", "محمود", "إبراهيم", "إسماعيل", "يوسف", "ياسين", "مصطفى", "كريم", "طارق", "خالد", "سعيد", "ماجد", "سامر", "باسل"];
+    const MALE_LAST = ["محمد", "أحمد", "علي", "حسن", "حسين", "محمود", "إبراهيم", "يوسف", "كريم", "طارق", "خالد", "سعيد", "عمرو", "مصطفى", "عبدالله"];
+    
     const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان", "بورسعيد", "الإسماعيلية", "السويس", "دمياط", "الغربية", "كفر الشيخ", "مطروح", "شمال سيناء", "الأقصر", "بنى سويف", "الفيوم", "أسيوط"];
     const SECTIONS = ["علمي علوم", "أدبي"];
     
-    function generateFullName() {
-        const firstName = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
-        const lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
-        return `${firstName} ${lastName}`;
+    // نقاط المراكز
+    let rank2Points = 15;
+    let rank3Points = 14;
+    let rank4Points = 12;
+    let rank5Points = 10;
+    
+    // إنشاء اسم (75% بنات، 25% ولاد)
+    function generateName() {
+        const isFemale = Math.random() < 0.75;
+        if (isFemale) {
+            const first = FEMALE_FIRST[Math.floor(Math.random() * FEMALE_FIRST.length)];
+            const last = FEMALE_LAST[Math.floor(Math.random() * FEMALE_LAST.length)];
+            return `${first} ${last}`;
+        } else {
+            const first = MALE_FIRST[Math.floor(Math.random() * MALE_FIRST.length)];
+            const last = MALE_LAST[Math.floor(Math.random() * MALE_LAST.length)];
+            return `${first} ${last}`;
+        }
     }
     
-    // إنشاء أفضل 5 طلاب وهميين بنقاط محددة
+    // إنشاء أفضل 5 طلاب وهميين
     function getTop5DemoStudents() {
         return [
-            { name: generateFullName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank2Points, isDemo: true, rank: 2 },
-            { name: generateFullName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank3Points, isDemo: true, rank: 3 },
-            { name: generateFullName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank4Points, isDemo: true, rank: 4 },
-            { name: generateFullName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank5Points, isDemo: true, rank: 5 }
+            { name: generateName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank2Points, isDemo: true },
+            { name: generateName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank3Points, isDemo: true },
+            { name: generateName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank4Points, isDemo: true },
+            { name: generateName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank5Points, isDemo: true }
         ];
     }
     
-    // إنشاء باقي الطلاب الوهميين (نقاط أقل)
+    // إنشاء باقي الطلاب (26 طالب)
     function getOtherDemoStudents() {
         const students = [];
-        const remainingPoints = [5, 4, 4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1];
-        for (let i = 0; i < 25; i++) {
+        const remainingPoints = [8, 7, 6, 6, 5, 5, 4, 4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+        for (let i = 0; i < remainingPoints.length; i++) {
             students.push({
-                name: generateFullName(),
+                name: generateName(),
                 city: CITIES[Math.floor(Math.random() * CITIES.length)],
                 section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)],
-                points: remainingPoints[i % remainingPoints.length] + Math.floor(Math.random() * 2),
+                points: remainingPoints[i],
                 isDemo: true
             });
         }
         return students;
     }
     
-    let lastDayUpdate = currentDay;
+    // تحديث كل ساعة (وليس كل ريفريش)
+    let lastHourUpdate = Math.floor(Date.now() / (60 * 60 * 1000));
     let cachedTop5 = null;
     let cachedOthers = null;
     
     function getDemoStudents() {
-        const now = new Date();
-        const currentDayCalc = getDaysPassed();
+        const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
         
-        // إذا تغير اليوم، نحدث النقاط
-        if (lastDayUpdate !== currentDayCalc) {
-            lastDayUpdate = currentDayCalc;
-            const newDevPoints = calculatePoints(13, TARGET_POINTS.developer, currentDayCalc);
-            DEVELOPER.points = newDevPoints;
-            rank2Points = calculatePoints(11, TARGET_POINTS.rank2, currentDayCalc);
-            rank3Points = calculatePoints(10, TARGET_POINTS.rank3, currentDayCalc);
-            rank4Points = calculatePoints(9, TARGET_POINTS.rank4, currentDayCalc);
-            rank5Points = calculatePoints(8, TARGET_POINTS.rank5, currentDayCalc);
-            
-            // إنشاء طلاب جدد
+        if (lastHourUpdate !== currentHour || !cachedTop5 || !cachedOthers) {
             cachedTop5 = getTop5DemoStudents();
             cachedOthers = getOtherDemoStudents();
+            lastHourUpdate = currentHour;
             
-            localStorage.setItem('developerPoints', DEVELOPER.points);
-            localStorage.setItem('lastDayUpdate', lastDayUpdate);
-            localStorage.setItem('rank2Points', rank2Points);
-            localStorage.setItem('rank3Points', rank3Points);
-            localStorage.setItem('rank4Points', rank4Points);
-            localStorage.setItem('rank5Points', rank5Points);
             localStorage.setItem('cachedTop5', JSON.stringify(cachedTop5));
             localStorage.setItem('cachedOthers', JSON.stringify(cachedOthers));
+            localStorage.setItem('lastHourUpdate', lastHourUpdate);
             
-            showMessage(`📈 تم تحديث نقاط المتصدرين - اليوم ${currentDayCalc}/25`, false);
-        }
-        
-        if (!cachedTop5 || !cachedOthers) {
-            cachedTop5 = getTop5DemoStudents();
-            cachedOthers = getOtherDemoStudents();
+            showMessage("🔄 تم تحديث أسماء الطلاب الوهميين (كل ساعة)", false);
         }
         
         return [...cachedTop5, ...cachedOthers];
     }
     
     // استعادة البيانات المخزنة
-    const savedDevPoints = localStorage.getItem('developerPoints');
-    const savedDay = localStorage.getItem('lastDayUpdate');
-    const savedRank2 = localStorage.getItem('rank2Points');
-    const savedRank3 = localStorage.getItem('rank3Points');
-    const savedRank4 = localStorage.getItem('rank4Points');
-    const savedRank5 = localStorage.getItem('rank5Points');
     const savedTop5 = localStorage.getItem('cachedTop5');
     const savedOthers = localStorage.getItem('cachedOthers');
+    const savedHour = localStorage.getItem('lastHourUpdate');
+    const currentHourNow = Math.floor(Date.now() / (60 * 60 * 1000));
     
-    if (savedDevPoints && savedDay && parseInt(savedDay) === currentDay) {
-        DEVELOPER.points = parseInt(savedDevPoints);
-        rank2Points = savedRank2 ? parseInt(savedRank2) : rank2Points;
-        rank3Points = savedRank3 ? parseInt(savedRank3) : rank3Points;
-        rank4Points = savedRank4 ? parseInt(savedRank4) : rank4Points;
-        rank5Points = savedRank5 ? parseInt(savedRank5) : rank5Points;
-        if (savedTop5) cachedTop5 = JSON.parse(savedTop5);
-        if (savedOthers) cachedOthers = JSON.parse(savedOthers);
-        lastDayUpdate = parseInt(savedDay);
+    if (savedTop5 && savedOthers && savedHour && parseInt(savedHour) === currentHourNow) {
+        cachedTop5 = JSON.parse(savedTop5);
+        cachedOthers = JSON.parse(savedOthers);
+        lastHourUpdate = parseInt(savedHour);
+    } else {
+        cachedTop5 = getTop5DemoStudents();
+        cachedOthers = getOtherDemoStudents();
+        lastHourUpdate = currentHourNow;
+        localStorage.setItem('cachedTop5', JSON.stringify(cachedTop5));
+        localStorage.setItem('cachedOthers', JSON.stringify(cachedOthers));
+        localStorage.setItem('lastHourUpdate', lastHourUpdate);
     }
     
     // ======================== إدارة المستخدمين الحقيقيين ========================
@@ -848,17 +810,6 @@
     document.getElementById('scrollLiterary')?.addEventListener('click', (e) => { e.preventDefault(); literaryDiv.scrollIntoView({behavior:'smooth'}); });
     
     renderLeaderboard();
-    
-    const TARGET_DATE = new Date(2026, 6, 19);
-    let globalCounter = localStorage.getItem('globalCounter') ? parseInt(localStorage.getItem('globalCounter')) : 287;
-    const counterSpan = document.getElementById('globalCounter');
-    if(counterSpan) counterSpan.innerText = globalCounter;
-    const counterInterval = setInterval(() => {
-        if (new Date() > TARGET_DATE) { clearInterval(counterInterval); return; }
-        globalCounter++;
-        if(counterSpan) counterSpan.innerText = globalCounter;
-        localStorage.setItem('globalCounter', globalCounter);
-    }, 5 * 60 * 1000);
 </script>
 </body>
     </html>
