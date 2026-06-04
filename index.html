@@ -368,14 +368,12 @@
     const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان", "بورسعيد", "الإسماعيلية", "السويس", "دمياط", "الغربية", "كفر الشيخ", "مطروح", "شمال سيناء", "الأقصر", "بنى سويف", "الفيوم", "أسيوط"];
     const SECTIONS = ["علمي علوم", "أدبي"];
     
-    // إنشاء اسم ثنائي (اسم + لقب)
     function generateFullName() {
         const firstName = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
         const lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
         return `${firstName} ${lastName}`;
     }
     
-    // إنشاء 30 طالب وهمي جدد بالكامل
     function generateFreshDemoStudents() {
         const students = [];
         for (let i = 0; i < 30; i++) {
@@ -383,59 +381,67 @@
                 name: generateFullName(),
                 city: CITIES[Math.floor(Math.random() * CITIES.length)],
                 section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)],
-                points: Math.floor(Math.random() * 16) + 1,
+                points: Math.floor(Math.random() * 14) + 1,
                 isDemo: true
             });
         }
         return students;
     }
     
-    // زيادة نقاط الوهميين فقط (نقطة أو نقطتين)
     function updateDemoPoints(demoStudents) {
         for (let student of demoStudents) {
-            const increase = Math.random() > 0.5 ? 1 : 2;
-            let newPoints = (student.points || 0) + increase;
-            student.points = Math.min(newPoints, 50);
+            const increase = Math.random() > 0.6 ? 1 : (Math.random() > 0.5 ? 1 : 0);
+            if (increase > 0) {
+                let newPoints = (student.points || 0) + increase;
+                student.points = Math.min(newPoints, 40);
+            }
         }
         return demoStudents;
     }
     
-    // تحديث كل 5 ساعات (تغيير كامل للأسماء وزيادة النقاط)
     let lastFullUpdate = Date.now();
+    let lastPointsUpdate = Date.now();
     let cachedDemoStudents = null;
     
     function getDemoStudents() {
         const now = Date.now();
         const FIVE_HOURS = 5 * 60 * 60 * 1000;
+        const ONE_DAY = 24 * 60 * 60 * 1000;
         
         if (!cachedDemoStudents || (now - lastFullUpdate) >= FIVE_HOURS) {
             cachedDemoStudents = generateFreshDemoStudents();
             lastFullUpdate = now;
+            lastPointsUpdate = now;
             localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
             localStorage.setItem('demoLastFullUpdate', lastFullUpdate);
-        } else {
-            // زيادة نقاط طفيفة بين التحديثات
+            localStorage.setItem('demoLastPointsUpdate', lastPointsUpdate);
+        }
+        else if ((now - lastPointsUpdate) >= ONE_DAY) {
             cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
+            lastPointsUpdate = now;
             localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
+            localStorage.setItem('demoLastPointsUpdate', lastPointsUpdate);
         }
         
         return cachedDemoStudents;
     }
     
-    // استعادة البيانات المخزنة
     const savedDemo = localStorage.getItem('demoStudentsCache');
     const savedFullUpdate = localStorage.getItem('demoLastFullUpdate');
+    const savedPointsUpdate = localStorage.getItem('demoLastPointsUpdate');
     if (savedDemo && savedFullUpdate) {
         cachedDemoStudents = JSON.parse(savedDemo);
         lastFullUpdate = parseInt(savedFullUpdate);
+        lastPointsUpdate = savedPointsUpdate ? parseInt(savedPointsUpdate) : lastFullUpdate;
     } else {
         cachedDemoStudents = generateFreshDemoStudents();
         lastFullUpdate = Date.now();
+        lastPointsUpdate = Date.now();
         localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
         localStorage.setItem('demoLastFullUpdate', lastFullUpdate);
+        localStorage.setItem('demoLastPointsUpdate', lastPointsUpdate);
     }
     
-    // حماية صدارة المطور
     function ensureDeveloperTop() {
         const demoStudents = getDemoStudents();
         let realUsers = loadRealUsers();
@@ -448,7 +454,6 @@
         }
     }
     
-    // ======================== إدارة المستخدمين الحقيقيين ========================
     function loadRealUsers() {
         const users = localStorage.getItem('realUsers');
         if (users) return JSON.parse(users);
@@ -616,7 +621,6 @@
         }, 30 * 60 * 1000);
     }
     
-    // ======================== فيديوهات المواد ========================
     const videosDB = {
         "أحياء": ["5a0adbdb-f342-4822-84a8-dd4780101aa8","baa81b68-e3cd-4c6f-a6c6-42ca111e8015","d0323977-e93d-4014-883a-18870dd1110d","d0d0e1ab-eef2-4fa9-a22d-4aae00ba1f2a","bfa347a4-651e-413e-9d22-0bb6c94371c5","b511649d-5702-4c80-9808-40665d6423b4","133d306d-b8c6-40ce-9e9f-c59526035825"],
         "كيمياء": ["61d11e36-2d50-4e1d-b93f-d311a1c633aa","42da5b5c-4223-4f65-991a-602564339cb0","e362a888-baff-4e94-a8ad-39d67e4d8574","12409227-628b-4e66-be66-61b7c96ecc56","be3cb711-18e8-4cfa-a3c5-35da51d5a466","09d9fb56-bdbd-4d04-9f81-8cb93a6c9902","4c78be84-b0e2-4a7d-8fbd-7e181c98b197"],
