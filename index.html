@@ -327,7 +327,7 @@
         isFixedTop: true
     };
     
-    // ======================== طلاب وهميون بنقاط أقل من 17 (واقعية) ========================
+    // ======================== طلاب وهميون بنقاط أقل من 17 (يتغيرون باستمرار) ========================
     const DEMO_NAMES = [
         "أحمد محمد", "سارة علي", "يوسف حسن", "فاطمة محمود", "عمر خالد",
         "نور الدين عبدالقادر", "منة الله سمير", "عبد الرحمن توفيق", "حبيبة أحمد", "محمد إبراهيم",
@@ -337,18 +337,14 @@
         "جنى عبد الله", "ليلى كريم", "أدهم سعيد", "فريدة ياسر", "مريم طارق"
     ];
     
-    const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان"];
+    const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان", "بورسعيد", "الإسماعيلية", "السويس", "دمياط", "الغربية", "كفر الشيخ", "مطروح", "شمال سيناء"];
     const SECTIONS = ["علمي علوم", "أدبي"];
     
+    // إنشاء طلاب وهميين بنقاط عشوائية (من 1 إلى 16)
     function generateDemoStudents() {
         const students = [];
         for (let i = 0; i < DEMO_NAMES.length; i++) {
-            let points;
-            if (i < 5) {
-                points = Math.floor(Math.random() * 5) + 12;
-            } else {
-                points = Math.floor(Math.random() * 15) + 1;
-            }
+            let points = Math.floor(Math.random() * 16) + 1; // نقاط عشوائية بين 1 و 16
             students.push({
                 name: DEMO_NAMES[i],
                 city: CITIES[Math.floor(Math.random() * CITIES.length)],
@@ -360,13 +356,24 @@
         return students;
     }
     
-    function updateDemoPoints(demoStudents) {
-        for (let student of demoStudents) {
-            let change = Math.floor(Math.random() * 7) - 2;
-            let newPoints = (student.points || 0) + change;
-            student.points = Math.max(1, Math.min(16, newPoints));
+    // تحديث الطلاب الوهميين بشكل نشط (يتغيرون كل ساعة)
+    function updateDemoStudents() {
+        const newStudents = [];
+        for (let i = 0; i < DEMO_NAMES.length; i++) {
+            // تغيير كبير في النقاط لجعل المنافسة نشطة
+            let change = Math.floor(Math.random() * 15) - 5; // -5 إلى +9
+            let oldPoints = cachedDemoStudents?.[i]?.points || 10;
+            let newPoints = oldPoints + change;
+            newPoints = Math.max(1, Math.min(16, newPoints));
+            newStudents.push({
+                name: DEMO_NAMES[i],
+                city: CITIES[Math.floor(Math.random() * CITIES.length)], // تغيير المدينة أحياناً
+                section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)],
+                points: newPoints,
+                isDemo: true
+            });
         }
-        return demoStudents;
+        return newStudents;
     }
     
     let lastUpdateHour = null;
@@ -377,7 +384,7 @@
         
         if (lastUpdateHour !== currentHour || !cachedDemoStudents) {
             if (cachedDemoStudents) {
-                cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
+                cachedDemoStudents = updateDemoStudents();
             } else {
                 cachedDemoStudents = generateDemoStudents();
             }
@@ -421,7 +428,7 @@
         // التأكد من أن المستخدمين الحقيقيين لا يتجاوزون 16 نقطة
         realUsers = realUsers.map(user => ({
             ...user,
-            points: Math.min(user.points || 0, 50)
+            points: Math.min(user.points || 0, 16)
         }));
         saveRealUsers(realUsers);
         
@@ -459,7 +466,7 @@
             badge.className = 'student-badge';
             let rank = idx+1;
             let rankText = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `${rank}`));
-            let developerBadge = student.isDeveloper ? ' 👑 مطور المنصة' : '';
+            let developerBadge = student.isDeveloper ? ' 👑 مطور المنصة (لا يُتغلب عليه)' : '';
             let sectionIcon = student.section === 'علمي علوم' ? '🔬' : '📜';
             badge.innerHTML = `
                 <div class="student-details">
@@ -474,21 +481,18 @@
             `;
             container.appendChild(badge);
         });
-        
-        const counterElement = document.getElementById('globalCounter');
-        if(counterElement) counterElement.innerText = allStudents.length;
     }
     
-    // تحديث دوري للطلاب الوهميين
+    // تحديث دوري للطلاب الوهميين كل ساعة (منافسة نشطة)
     setInterval(() => {
         const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
         if (lastUpdateHour !== currentHour) {
-            cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
+            cachedDemoStudents = updateDemoStudents();
             lastUpdateHour = currentHour;
             localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
             localStorage.setItem('demoLastHour', lastUpdateHour);
             renderLeaderboard();
-            showMessage("🔄 تم تحديث ترتيب المتصدرين تلقائياً!");
+            showMessage("🔄 تم تحديث ترتيب المتصدرين - منافسة نشطة!");
         }
     }, 60000);
     
@@ -506,7 +510,6 @@
     }
     
     function saveRealUser(name, city, section) {
-        // حفظ بيانات المستخدم الحالي في localStorage
         localStorage.setItem('currentUser', name);
         localStorage.setItem('userCity', city);
         localStorage.setItem('userSection', section);
@@ -516,11 +519,11 @@
         userCity = city;
         userSection = section;
         
-        // حفظ في قائمة المستخدمين الحقيقيين
         let realUsers = loadRealUsers();
         const existingIndex = realUsers.findIndex(u => u.name === name && u.city === city);
         if (existingIndex !== -1) {
             realUsers[existingIndex].points = userPoints;
+            realUsers[existingIndex].section = section;
         } else {
             realUsers.push({ name, city, section, points: userPoints });
         }
@@ -529,12 +532,10 @@
         renderLeaderboard();
     }
     
-    // تحميل بيانات المستخدم السابق من الجهاز
     if (currentUser) {
         document.getElementById('studentName').value = currentUser;
         document.getElementById('studentCity').value = userCity;
         document.getElementById('studentSection').value = userSection;
-        // التأكد من أن النقاط تظهر في اللوحة
         let realUsers = loadRealUsers();
         const userData = realUsers.find(u => u.name === currentUser && u.city === userCity);
         if (userData) {
@@ -552,7 +553,7 @@
             return; 
         }
         saveRealUser(name, city, section);
-        showMessage(`✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين. سيتم حفظ بياناتك .`);
+        showMessage(`✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين. سيتم حفظ بياناتك.`);
     });
     
     document.getElementById('refreshLeaderboardBtn')?.addEventListener('click', () => {
@@ -572,7 +573,6 @@
                     userPoints++;
                     localStorage.setItem('userPoints', userPoints);
                     
-                    // تحديث في قائمة المستخدمين الحقيقيين
                     let realUsers = loadRealUsers();
                     const userIndex = realUsers.findIndex(u => u.name === currentUser && u.city === userCity);
                     if (userIndex !== -1) {
@@ -586,7 +586,7 @@
                     generateCertificate(currentUser, userCity, userSection, subject, modelNum);
                     renderLeaderboard();
                 } else {
-                    showMessage(`🎉 تهانينا! أنت بالفعل حصلت على ${userPoints} شهادة. استمر في المذاكرة!`);
+                    showMessage(`🎉 أنت بالفعل حصلت على ${userPoints} شهادة. استمر في المذاكرة!`);
                 }
             } else {
                 showMessage("⚠️ الرجاء الانضمام للوحة المتصدرين أولاً.", true);
@@ -739,15 +739,31 @@
     
     renderLeaderboard();
     
-    // ======================== عداد المنضمين ========================
-    let globalCounter = localStorage.getItem('globalCounter') ? parseInt(localStorage.getItem('globalCounter')) : 284;
+    // ======================== عداد المنضمين (يبدأ من 287 ويزيد كل 5 دقائق حتى 19-7-2026) ========================
+    const TARGET_DATE = new Date(2026, 6, 19); // 19 يوليو 2026
+    
+    function getInitialCounter() {
+        let saved = localStorage.getItem('globalCounter');
+        if (saved && !isNaN(parseInt(saved))) {
+            return parseInt(saved);
+        }
+        return 287; // بداية من 287 طالب
+    }
+    
+    let globalCounter = getInitialCounter();
     const counterSpan = document.getElementById('globalCounter');
     if(counterSpan) counterSpan.innerText = globalCounter;
-    setInterval(() => {
+    
+    const counterInterval = setInterval(() => {
+        const now = new Date();
+        if (now > TARGET_DATE) {
+            clearInterval(counterInterval);
+            return;
+        }
         globalCounter++;
         if(counterSpan) counterSpan.innerText = globalCounter;
         localStorage.setItem('globalCounter', globalCounter);
-    }, 5 * 60 * 1000);
+    }, 5 * 60 * 1000); // كل 5 دقائق
 </script>
 </body>
-    </html>
+</html>
