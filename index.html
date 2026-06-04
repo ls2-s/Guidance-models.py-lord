@@ -307,10 +307,10 @@
 <div class="container">
     <div id="leaderboardSection" class="leaderboard-panel">
         <div class="leaderboard-header">
-            <h3>🏆 أفضل 5 طلاب (منافسة حقيقية)</h3>
+            <h3>🏆 أفضل 5 طلاب (منافسة حقيقية - تحديث الوهميين كل 5 ساعات)</h3>
             <div class="status-indicator">
                 <div class="status-light"></div>
-                <span class="status-text">✅ متصدر المنصة: زياد عماد | 17 شهادة</span>
+                <span class="status-text">✅ متصدر المنصة: زياد عماد</span>
             </div>
         </div>
         <div class="join-form">
@@ -346,14 +346,14 @@
 </div>
 
 <div class="footer">
-    <p>📌 مطور المنصة: <strong>زياد عماد-مطور الويب (علمي علوم) | 17 شهادة - متصدر المنصة</strong></p>
+    <p>📌 مطور المنصة: <strong>زياد عماد-مطور الويب (علمي علوم) - متصدر المنصة</strong></p>
     <a href="https://ls2-s.github.io/zizo/" target="_blank" class="personal-site-btn">🌐 الموقع الشخصي للمطور</a>
     <p style="margin-top:1rem;">🔓 يتم إصدار الشهادة بعد مشاهدة 30 دقيقة من الفيديو</p>
 </div>
 
 <script>
-    // ======================== المطور الثابت في الصدارة بـ 17 شهادة ========================
-    const DEVELOPER = {
+    // ======================== المطور ========================
+    let DEVELOPER = {
         name: "زياد عماد-مطور الويب",
         city: "اسيوط",
         section: "علمي علوم",
@@ -362,102 +362,113 @@
         isFixedTop: true
     };
     
-    // ======================== نقاط محددة وغير متشابهة لأفضل 5 وهميين ========================
-    // نقاط مختلفة تماماً لكل مركز (2, 3, 4, 5, 6) لضمان تنوع الأعداد
-    const DEMO_TOP5_POINTS = [15, 14, 12, 10, 8];
-    
-    const DEMO_NAMES = [
-        "أحمد محمد", "سارة علي", "يوسف حسن", "فاطمة محمود", "عمر خالد",
-        "نور الدين عبدالقادر", "منة الله سمير", "عبد الرحمن توفيق", "حبيبة أحمد", "محمد إبراهيم",
-        "جنى وائل", "كريم طارق", "لينة سمير", "ملك سامي", "آدم حسام",
-        "جودي خالد", "ياسين عمرو", "تيا محمد", "خالد حسن", "شهد علاء",
-        "سيف الدين", "روان أحمد", "حمزة علي", "نورا مصطفى", "إياد عمر",
-        "جنى عبد الله", "ليلى كريم", "أدهم سعيد", "فريدة ياسر", "مريم طارق"
-    ];
-    
-    const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان", "بورسعيد", "الإسماعيلية", "السويس", "دمياط", "الغربية", "كفر الشيخ", "مطروح", "شمال سيناء"];
+    // ======================== قوائم الأسماء الوهمية (كبيرة ومتنوعة) ========================
+    const FIRST_NAMES = ["أحمد", "محمد", "عبدالله", "عمر", "علي", "حسن", "حسين", "محمود", "إبراهيم", "إسماعيل", "يوسف", "ياسين", "مصطفى", "كريم", "طارق", "خالد", "سعيد", "ماجد", "سامر", "باسل"];
+    const LAST_NAMES = ["محمد", "أحمد", "علي", "حسن", "حسين", "محمود", "إبراهيم", "يوسف", "كريم", "طارق", "خالد", "سعيد", "ماجد", "سامر", "باسل", "نور", "شادي", "رامي", "هاني", "مروان"];
+    const FEMALE_NAMES = ["سارة", "فاطمة", "نور", "مريم", "حبيبة", "جنى", "ملك", "لينة", "تيا", "شهد", "روان", "نورا", "جودي", "فريدة", "منة", "سلمى", "رنا", "ليلى", "دينا", "آية"];
+    const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان", "بورسعيد", "الإسماعيلية", "السويس", "دمياط", "الغربية", "كفر الشيخ", "مطروح", "شمال سيناء", "الأقصر", "بنى سويف", "الفيوم", "أسيوط"];
     const SECTIONS = ["علمي علوم", "أدبي"];
     
-    function generateDemoStudents() {
+    // إنشاء أسماء وهمية جديدة تماماً
+    function generateRandomName() {
+        const useFemale = Math.random() > 0.5;
+        if (useFemale) {
+            return FEMALE_NAMES[Math.floor(Math.random() * FEMALE_NAMES.length)];
+        } else {
+            const firstName = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
+            const lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
+            return `${firstName} ${lastName}`;
+        }
+    }
+    
+    // إنشاء 30 طالب وهمي جدد بالكامل
+    function generateFreshDemoStudents() {
         const students = [];
-        for (let i = 0; i < DEMO_NAMES.length; i++) {
-            let points;
-            if (i < 5) {
-                // الخمسة الأوائل الوهميين يحصلون على نقاط مختلفة ومحددة
-                points = DEMO_TOP5_POINTS[i];
-            } else {
-                // باقي الطلاب نقاط عشوائية أقل من 8
-                points = Math.floor(Math.random() * 7) + 1; // من 1 إلى 7
-            }
+        for (let i = 0; i < 30; i++) {
             students.push({
-                name: DEMO_NAMES[i],
+                name: generateRandomName(),
                 city: CITIES[Math.floor(Math.random() * CITIES.length)],
                 section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)],
-                points: points,
-                isDemo: true
+                points: Math.floor(Math.random() * 16) + 1,
+                isDemo: true,
+                lastUpdate: Date.now()
             });
         }
         return students;
     }
     
-    function updateDemoStudents() {
-        const newStudents = [];
-        for (let i = 0; i < DEMO_NAMES.length; i++) {
-            let points;
-            if (i < 5) {
-                // الحفاظ على النقاط المحددة للأوائل مع تغيير طفيف ولكن غير متساوي
-                const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, +1
-                let newPoints = DEMO_TOP5_POINTS[i] + variation;
-                newPoints = Math.max(1, Math.min(16, newPoints));
-                // التأكد من عدم تساوي النقاط مع بعضها
-                points = newPoints;
-            } else {
-                let change = Math.floor(Math.random() * 7) - 2;
-                let oldPoints = cachedDemoStudents?.[i]?.points || 5;
-                let newPoints = oldPoints + change;
-                points = Math.max(1, Math.min(7, newPoints));
-            }
-            newStudents.push({
-                name: DEMO_NAMES[i],
-                city: CITIES[Math.floor(Math.random() * CITIES.length)],
-                section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)],
-                points: points,
-                isDemo: true
-            });
+    // زيادة نقاط الوهميين فقط (نقطة أو نقطتين)
+    function updateDemoPoints(demoStudents) {
+        for (let student of demoStudents) {
+            const increase = Math.random() > 0.5 ? 1 : 2; // نقطة أو نقطتين
+            let newPoints = (student.points || 0) + increase;
+            student.points = Math.min(newPoints, 50); // حد أقصى 50
+            student.lastUpdate = Date.now();
         }
-        // إعادة ترتيب النقاط لضمان عدم التشابه بين المراكز
-        newStudents.sort((a, b) => b.points - a.points);
-        return newStudents;
+        return demoStudents;
     }
     
-    let lastUpdateHour = null;
+    // استبدال الوهميين بأسماء جديدة كل 5 ساعات
+    let lastFullUpdate = Date.now();
+    let lastDailyUpdate = Date.now();
     let cachedDemoStudents = null;
     
     function getDemoStudents() {
-        const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
-        if (lastUpdateHour !== currentHour || !cachedDemoStudents) {
-            if (cachedDemoStudents) {
-                cachedDemoStudents = updateDemoStudents();
-            } else {
-                cachedDemoStudents = generateDemoStudents();
-            }
-            lastUpdateHour = currentHour;
+        const now = Date.now();
+        const FIVE_HOURS = 5 * 60 * 60 * 1000;
+        const ONE_DAY = 24 * 60 * 60 * 1000;
+        
+        // كل 5 ساعات: تغيير كامل للأسماء
+        if (!cachedDemoStudents || (now - lastFullUpdate) >= FIVE_HOURS) {
+            cachedDemoStudents = generateFreshDemoStudents();
+            lastFullUpdate = now;
             localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
-            localStorage.setItem('demoLastHour', lastUpdateHour);
+            localStorage.setItem('demoLastFullUpdate', lastFullUpdate);
+            showMessage("🔄 تم تغيير أسماء الطلاب الوهميين بالكامل!", false);
         }
+        // كل يوم: زيادة نقاط الوهميين فقط
+        else if ((now - lastDailyUpdate) >= ONE_DAY) {
+            cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
+            lastDailyUpdate = now;
+            localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
+            localStorage.setItem('demoLastDailyUpdate', lastDailyUpdate);
+            showMessage("📈 تم تحديث نقاط الطلاب الوهميين (زيادة نقطة أو نقطتين)!", false);
+        }
+        
         return cachedDemoStudents;
     }
     
+    // استعادة البيانات المخزنة
     const savedDemo = localStorage.getItem('demoStudentsCache');
-    const savedHour = localStorage.getItem('demoLastHour');
-    if (savedDemo && savedHour && parseInt(savedHour) === Math.floor(Date.now() / (60 * 60 * 1000))) {
+    const savedFullUpdate = localStorage.getItem('demoLastFullUpdate');
+    const savedDailyUpdate = localStorage.getItem('demoLastDailyUpdate');
+    if (savedDemo && savedFullUpdate) {
         cachedDemoStudents = JSON.parse(savedDemo);
-        lastUpdateHour = parseInt(savedHour);
+        lastFullUpdate = parseInt(savedFullUpdate);
+        lastDailyUpdate = savedDailyUpdate ? parseInt(savedDailyUpdate) : lastFullUpdate;
     } else {
-        cachedDemoStudents = generateDemoStudents();
-        lastUpdateHour = Math.floor(Date.now() / (60 * 60 * 1000));
+        cachedDemoStudents = generateFreshDemoStudents();
+        lastFullUpdate = Date.now();
+        lastDailyUpdate = Date.now();
         localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
-        localStorage.setItem('demoLastHour', lastUpdateHour);
+        localStorage.setItem('demoLastFullUpdate', lastFullUpdate);
+        localStorage.setItem('demoLastDailyUpdate', lastDailyUpdate);
+    }
+    
+    // ======================== حماية صدارة المطور ========================
+    function ensureDeveloperTop() {
+        const demoStudents = getDemoStudents();
+        let realUsers = loadRealUsers();
+        const allOthers = [...demoStudents, ...realUsers];
+        const maxOthersPoints = Math.max(...allOthers.map(s => s.points || 0), 0);
+        
+        if (DEVELOPER.points <= maxOthersPoints) {
+            DEVELOPER.points = maxOthersPoints + 3;
+            localStorage.setItem('developerPoints', DEVELOPER.points);
+            if (currentUser === DEVELOPER.name) {
+                showMessage("🛡️ تمت حماية صدارة المطور تلقائياً!", false);
+            }
+        }
     }
     
     // ======================== إدارة المستخدمين الحقيقيين ========================
@@ -474,8 +485,7 @@
     function getAllStudents() {
         const demoStudents = getDemoStudents();
         let realUsers = loadRealUsers();
-        realUsers = realUsers.map(user => ({ ...user, points: Math.min(user.points || 0, 16) }));
-        saveRealUsers(realUsers);
+        ensureDeveloperTop();
         const allStudents = [DEVELOPER, ...demoStudents, ...realUsers];
         const uniqueStudents = [];
         const seen = new Set();
@@ -486,11 +496,7 @@
                 uniqueStudents.push(student);
             }
         }
-        uniqueStudents.sort((a, b) => {
-            if (a.isFixedTop) return -1;
-            if (b.isFixedTop) return 1;
-            return (b.points || 0) - (a.points || 0);
-        });
+        uniqueStudents.sort((a, b) => (b.points || 0) - (a.points || 0));
         return uniqueStudents;
     }
     
@@ -505,7 +511,7 @@
             badge.className = 'student-badge';
             let rank = idx+1;
             let rankText = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `${rank}`));
-            let developerBadge = student.isDeveloper ? ' 👑 مطور المنصة (لا يُتغلب عليه)' : '';
+            let developerBadge = student.isDeveloper ? ' 👑 مطور المنصة' : '';
             let sectionIcon = student.section === 'علمي علوم' ? '🔬' : '📜';
             badge.innerHTML = `
                 <div class="student-details">
@@ -542,22 +548,39 @@
         }
     }
     
+    // التحقق من التحديثات كل ساعة
     setInterval(() => {
-        const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
-        if (lastUpdateHour !== currentHour) {
-            cachedDemoStudents = updateDemoStudents();
-            lastUpdateHour = currentHour;
+        const now = Date.now();
+        const FIVE_HOURS = 5 * 60 * 60 * 1000;
+        const ONE_DAY = 24 * 60 * 60 * 1000;
+        
+        if ((now - lastFullUpdate) >= FIVE_HOURS) {
+            cachedDemoStudents = generateFreshDemoStudents();
+            lastFullUpdate = now;
             localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
-            localStorage.setItem('demoLastHour', lastUpdateHour);
+            localStorage.setItem('demoLastFullUpdate', lastFullUpdate);
             renderLeaderboard();
-            showMessage("🔄 تم تحديث ترتيب المتصدرين - منافسة نشطة!");
+            showMessage("🔄 تم تغيير أسماء الطلاب الوهميين بالكامل!", false);
         }
-    }, 60000);
+        else if ((now - lastDailyUpdate) >= ONE_DAY) {
+            cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
+            lastDailyUpdate = now;
+            localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
+            localStorage.setItem('demoLastDailyUpdate', lastDailyUpdate);
+            ensureDeveloperTop();
+            renderLeaderboard();
+            showMessage("📈 تم تحديث نقاط الطلاب الوهميين!", false);
+        }
+    }, 3600000); // كل ساعة
     
     let currentUser = localStorage.getItem('currentUser') || null;
     let userCity = localStorage.getItem('userCity') || '';
     let userSection = localStorage.getItem('userSection') || '';
     let userPoints = parseInt(localStorage.getItem('userPoints') || '0');
+    
+    // استعادة نقاط المطور
+    const savedDevPoints = localStorage.getItem('developerPoints');
+    if (savedDevPoints) DEVELOPER.points = parseInt(savedDevPoints);
     
     function showMessage(msg, isError = false) {
         const msgDiv = document.getElementById('statusMessage');
@@ -583,6 +606,7 @@
             realUsers.push({ name, city, section, points: userPoints });
         }
         saveRealUsers(realUsers);
+        ensureDeveloperTop();
         renderLeaderboard();
     }
     
@@ -623,20 +647,17 @@
         showMessage(`⏱️ بدء حساب وقت المشاهدة لنموذج ${subject} - ${modelNum}. مطلوب 30 دقيقة للحصول على الشهادة.`);
         activeTimers[url] = setTimeout(() => {
             if(currentUser && userCity && userSection) {
-                if (userPoints < 16) {
-                    userPoints++;
-                    localStorage.setItem('userPoints', userPoints);
-                    let realUsers = loadRealUsers();
-                    const userIndex = realUsers.findIndex(u => u.name === currentUser && u.city === userCity);
-                    if (userIndex !== -1) realUsers[userIndex].points = userPoints;
-                    else realUsers.push({ name: currentUser, city: userCity, section: userSection, points: userPoints });
-                    saveRealUsers(realUsers);
-                    showMessage(`🎉 تهانينا! بعد مشاهدة 30 دقيقة، تم منحك شهادة معتمدة لنموذج ${subject} - ${modelNum}. رصيدك الآن ${userPoints} شهادة.`);
-                    generateCertificate(currentUser, userCity, userSection, subject, modelNum);
-                    renderLeaderboard();
-                } else {
-                    showMessage(`🎉 أنت بالفعل حصلت على ${userPoints} شهادة. استمر في المذاكرة!`);
-                }
+                userPoints++;
+                localStorage.setItem('userPoints', userPoints);
+                let realUsers = loadRealUsers();
+                const userIndex = realUsers.findIndex(u => u.name === currentUser && u.city === userCity);
+                if (userIndex !== -1) realUsers[userIndex].points = userPoints;
+                else realUsers.push({ name: currentUser, city: userCity, section: userSection, points: userPoints });
+                saveRealUsers(realUsers);
+                ensureDeveloperTop();
+                showMessage(`🎉 تهانينا! بعد مشاهدة 30 دقيقة، تم منحك شهادة معتمدة لنموذج ${subject} - ${modelNum}. رصيدك الآن ${userPoints} شهادة.`);
+                generateCertificate(currentUser, userCity, userSection, subject, modelNum);
+                renderLeaderboard();
             } else {
                 showMessage("⚠️ الرجاء الانضمام للوحة المتصدرين أولاً.", true);
             }
@@ -845,4 +866,4 @@
     }, 5 * 60 * 1000);
 </script>
 </body>
-    </html>
+</html>
