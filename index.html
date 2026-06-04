@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>النماذج الاسترشادية 2026 | ثانوية عامة</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -92,25 +89,15 @@
             width: 14px;
             height: 14px;
             border-radius: 50%;
-            background: gray;
-            box-shadow: 0 0 5px rgba(0,0,0,0.2);
-        }
-        .status-light.green {
             background: #22c55e;
             box-shadow: 0 0 8px #22c55e;
-        }
-        .status-light.red {
-            background: #ef4444;
-            box-shadow: 0 0 8px #ef4444;
-        }
-        .status-text {
-            font-weight: bold;
         }
         .join-form {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
             align-items: center;
+            margin-bottom: 1rem;
         }
         .join-form select, .join-form input, .join-form button {
             padding: 0.5rem 1rem;
@@ -290,10 +277,10 @@
 <div class="container">
     <div id="leaderboardSection" class="leaderboard-panel">
         <div class="leaderboard-header">
-            <h3>🏆 أفضل 20 طالب (لوحة المتصدرين - مركزية من Firebase)</h3>
-            <div class="status-indicator" id="firebaseStatus">
-                <div class="status-light" id="statusLight"></div>
-                <span class="status-text" id="statusText">جاري التحقق...</span>
+            <h3>🏆 أفضل 5 طلاب (منافسة حقيقية)</h3>
+            <div class="status-indicator">
+                <div class="status-light"></div>
+                <span class="status-text">✅ متصدر المنصة: زياد عماد | 17 شهادة</span>
             </div>
         </div>
         <div class="join-form">
@@ -306,11 +293,11 @@
             <button id="joinBtn">➕ انضم للمنافسة</button>
             <button id="refreshLeaderboardBtn" class="refresh-btn">🔄 تحديث</button>
         </div>
-        <div id="studentListContainer" class="student-list">🔄 جاري التحميل من قاعدة البيانات...</div>
+        <div id="studentListContainer" class="student-list">🔄 جاري التحميل...</div>
         <div id="statusMessage" class="status-msg"></div>
         <button id="previewCertificateBtn" class="preview-btn">🎓 استعرض نماذج الشهادات (للتحفيز)</button>
         <div class="condition-note">
-            ⏱️ للحصول على شهادة معتمدة وزيادة رصيدك، يجب مشاهدة الفيديو لمدة 30 دقيقة كاملة.
+            ⏱️ للحصول على شهادة معتمدة، يجب مشاهدة الفيديو لمدة 30 دقيقة كاملة.
         </div>
     </div>
 
@@ -324,171 +311,150 @@
 </div>
 
 <div class="footer">
-    <p>📌 مطور المنصة: <strong>زياد عماد-مطور الويب (علمي علوم)</strong></p>
+    <p>📌 مطور المنصة: <strong>زياد عماد-مطور الويب (علمي علوم) | 17 شهادة - متصدر المنصة</strong></p>
     <a href="https://ls2-s.github.io/zizo/" target="_blank" class="personal-site-btn">🌐 الموقع الشخصي للمطور</a>
     <p style="margin-top:1rem;">🔓 يتم إصدار الشهادة بعد مشاهدة 30 دقيقة من الفيديو</p>
 </div>
 
 <script>
-    // ======================== Firebase Configuration ========================
-    const firebaseConfig = {
-        apiKey: "AIzaSyChD9GZROeahUCiGAdf-KQZWidYrvs2mTI",
-        authDomain: "website-ziad.firebaseapp.com",
-        databaseURL: "https://website-ziad-default-rtdb.firebaseio.com",
-        projectId: "website-ziad",
-        storageBucket: "website-ziad.firebasestorage.app",
-        messagingSenderId: "213526771066",
-        appId: "1:213526771066:web:a643a137a53be88aacd2c3",
-        measurementId: "G-26JDTTW50K"
+    // ======================== المطور الثابت في الصدارة بـ 17 شهادة ========================
+    const DEVELOPER = {
+        name: "زياد عماد-مطور الويب",
+        city: "اسيوط",
+        section: "علمي علوم",
+        points: 17,
+        isDeveloper: true,
+        isFixedTop: true
     };
     
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // ======================== طلاب وهميون بنقاط أقل من 17 (واقعية) ========================
+    const DEMO_NAMES = [
+        "أحمد محمد", "سارة علي", "يوسف حسن", "فاطمة محمود", "عمر خالد",
+        "نور الدين عبدالقادر", "منة الله سمير", "عبد الرحمن توفيق", "حبيبة أحمد", "محمد إبراهيم",
+        "جنى وائل", "كريم طارق", "لينة سمير", "ملك سامي", "آدم حسام",
+        "جودي خالد", "ياسين عمرو", "تيا محمد", "خالد حسن", "شهد علاء",
+        "سيف الدين", "روان أحمد", "حمزة علي", "نورا مصطفى", "إياد عمر",
+        "جنى عبد الله", "ليلى كريم", "أدهم سعيد", "فريدة ياسر", "مريم طارق"
+    ];
     
-    // ======================== مؤشر حالة Firebase ========================
-    const statusLight = document.getElementById('statusLight');
-    const statusText = document.getElementById('statusText');
+    const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان"];
+    const SECTIONS = ["علمي علوم", "أدبي"];
     
-    async function checkFirebaseConnection() {
-        try {
-            await db.collection('students').limit(1).get();
-            statusLight.className = 'status-light green';
-            statusText.innerHTML = '✅ Firebase متصل | حفظ سحابي + محلي';
-            return true;
-        } catch (error) {
-            console.error("Firebase connection error:", error);
-            statusLight.className = 'status-light red';
-            statusText.innerHTML = '❌ وضع عدم الاتصال | البيانات محفوظة محلياً';
-            return false;
+    function generateDemoStudents() {
+        const students = [];
+        for (let i = 0; i < DEMO_NAMES.length; i++) {
+            let points;
+            if (i < 5) {
+                points = Math.floor(Math.random() * 5) + 12;
+            } else {
+                points = Math.floor(Math.random() * 15) + 1;
+            }
+            students.push({
+                name: DEMO_NAMES[i],
+                city: CITIES[Math.floor(Math.random() * CITIES.length)],
+                section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)],
+                points: points,
+                isDemo: true
+            });
         }
+        return students;
     }
     
-    checkFirebaseConnection();
-    setInterval(checkFirebaseConnection, 30000);
-    
-    // ======================== بيانات المطور الثابت ========================
-    const DEVELOPER_NAME = "زياد عماد-مطور الويب";
-    const DEVELOPER_CITY = "اسيوط";
-    const DEVELOPER_SECTION = "علمي علوم";
-    const DEVELOPER_ID = "developer_zizo_unique";
-    
-    // ======================== إدارة التخزين المزدوج (محلي + سحابي) ========================
-    let currentUser = null;
-    let userCity = '';
-    let userSection = '';
-    
-    // تحميل البيانات من التخزين المحلي أولاً (للسرعة)
-    function loadFromLocalStorage() {
-        currentUser = localStorage.getItem('currentUser');
-        userCity = localStorage.getItem('userCity');
-        userSection = localStorage.getItem('userSection');
-        if(currentUser) {
-            document.getElementById('studentName').value = currentUser;
-            document.getElementById('studentCity').value = userCity;
-            document.getElementById('studentSection').value = userSection;
+    function updateDemoPoints(demoStudents) {
+        for (let student of demoStudents) {
+            let change = Math.floor(Math.random() * 7) - 2;
+            let newPoints = (student.points || 0) + change;
+            student.points = Math.max(1, Math.min(16, newPoints));
         }
+        return demoStudents;
     }
     
-    // حفظ البيانات في التخزين المحلي
-    function saveToLocalStorage(name, city, section) {
-        localStorage.setItem('currentUser', name);
-        localStorage.setItem('userCity', city);
-        localStorage.setItem('userSection', section);
-        currentUser = name;
-        userCity = city;
-        userSection = section;
-    }
+    let lastUpdateHour = null;
+    let cachedDemoStudents = null;
     
-    // دمج التخزين المحلي مع السحابي (لضمان عدم فقدان البيانات)
-    async function syncLocalWithCloud() {
-        const localName = localStorage.getItem('currentUser');
-        const localCity = localStorage.getItem('userCity');
-        const localSection = localStorage.getItem('userSection');
+    function getDemoStudents() {
+        const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
         
-        if(localName && localCity && localSection) {
-            const userId = `${localName}_${localCity}_${localSection}`.replace(/\s/g, '_');
-            const userRef = db.collection('students').doc(userId);
-            const doc = await userRef.get();
-            
-            if(!doc.exists) {
-                // إذا كان المستخدم موجود محلياً ولكن ليس في السحاب، نرفعه للسحاب
-                await userRef.set({
-                    id: userId,
-                    name: localName,
-                    city: localCity,
-                    section: localSection,
-                    points: parseInt(localStorage.getItem('localPoints') || '0'),
-                    createdAt: new Date().toISOString(),
-                    isDeveloper: (localName === DEVELOPER_NAME && localCity === DEVELOPER_CITY && localSection === DEVELOPER_SECTION)
-                });
-                console.log("تم رفع البيانات المحلية إلى السحاب");
+        if (lastUpdateHour !== currentHour || !cachedDemoStudents) {
+            if (cachedDemoStudents) {
+                cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
+            } else {
+                cachedDemoStudents = generateDemoStudents();
+            }
+            lastUpdateHour = currentHour;
+            localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
+            localStorage.setItem('demoLastHour', lastUpdateHour);
+        }
+        return cachedDemoStudents;
+    }
+    
+    const savedDemo = localStorage.getItem('demoStudentsCache');
+    const savedHour = localStorage.getItem('demoLastHour');
+    if (savedDemo && savedHour && parseInt(savedHour) === Math.floor(Date.now() / (60 * 60 * 1000))) {
+        cachedDemoStudents = JSON.parse(savedDemo);
+        lastUpdateHour = parseInt(savedHour);
+    } else {
+        cachedDemoStudents = generateDemoStudents();
+        lastUpdateHour = Math.floor(Date.now() / (60 * 60 * 1000));
+        localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
+        localStorage.setItem('demoLastHour', lastUpdateHour);
+    }
+    
+    // ======================== إدارة المستخدمين الحقيقيين (حفظ دائم على الجهاز) ========================
+    function loadRealUsers() {
+        const users = localStorage.getItem('realUsers');
+        if (users) {
+            return JSON.parse(users);
+        }
+        return [];
+    }
+    
+    function saveRealUsers(users) {
+        localStorage.setItem('realUsers', JSON.stringify(users));
+    }
+    
+    // دمج البيانات (مطور + طلاب وهميين + مستخدمين حقيقيين)
+    function getAllStudents() {
+        const demoStudents = getDemoStudents();
+        let realUsers = loadRealUsers();
+        
+        // التأكد من أن المستخدمين الحقيقيين لا يتجاوزون 16 نقطة
+        realUsers = realUsers.map(user => ({
+            ...user,
+            points: Math.min(user.points || 0, 50)
+        }));
+        saveRealUsers(realUsers);
+        
+        const allStudents = [DEVELOPER, ...demoStudents, ...realUsers];
+        
+        const uniqueStudents = [];
+        const seen = new Set();
+        for (const student of allStudents) {
+            const key = `${student.name}_${student.city}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                uniqueStudents.push(student);
             }
         }
+        
+        uniqueStudents.sort((a, b) => {
+            if (a.isFixedTop) return -1;
+            if (b.isFixedTop) return 1;
+            return (b.points || 0) - (a.points || 0);
+        });
+        
+        return uniqueStudents;
     }
     
-    // ======================== دوال Firebase ========================
-    function showMessage(msg, isError = false) {
-        const msgDiv = document.getElementById('statusMessage');
-        msgDiv.innerHTML = msg;
-        msgDiv.style.color = isError ? 'red' : 'green';
-        setTimeout(() => { msgDiv.innerHTML = ''; }, 3000);
-    }
-    
-    async function saveUserToFirebase(user) {
-        try {
-            await db.collection('students').doc(user.id).set(user);
-            return true;
-        } catch (error) {
-            console.warn("فشل الحفظ في Firebase، ولكن البيانات محفوظة محلياً:", error);
-            return false;
-        }
-    }
-    
-    async function loadAllUsers() {
-        try {
-            const snapshot = await db.collection('students').orderBy('points', 'desc').get();
-            const users = [];
-            snapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
-            
-            // حفظ النسخة المحلية من اللوحة (لحالة عدم الاتصال)
-            localStorage.setItem('cachedLeaderboard', JSON.stringify(users));
-            return users;
-        } catch (error) {
-            console.warn("فشل التحميل من Firebase، جاري استخدام النسخة المحلية المخبأة:", error);
-            const cached = localStorage.getItem('cachedLeaderboard');
-            return cached ? JSON.parse(cached) : [];
-        }
-    }
-    
-    async function incrementUserPoints(userId, currentPoints) {
-        try {
-            await db.collection('students').doc(userId).update({ points: currentPoints + 1 });
-            return true;
-        } catch (error) {
-            console.warn("فشل تحديث Firebase، جاري الحفظ محلياً:", error);
-            // حفظ النقاط محلياً للمستخدم الحالي
-            localStorage.setItem('localPoints', (currentPoints + 1).toString());
-            return false;
-        }
-    }
-    
-    async function renderLeaderboard() {
+    function renderLeaderboard() {
         const container = document.getElementById('studentListContainer');
         if(!container) return;
-        container.innerHTML = '<div style="text-align:center; padding:1rem;">🔄 جاري التحميل...</div>';
         
-        const users = await loadAllUsers();
-        const top20 = users.slice(0, 20);
-        
-        if(top20.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:1rem;">✨ لا يوجد طلاب بعد، كن أول من ينضم!</div>';
-            document.getElementById('globalCounter').innerText = '0';
-            return;
-        }
+        const allStudents = getAllStudents();
+        const top5 = allStudents.slice(0, 5);
         
         container.innerHTML = '';
-        top20.forEach((student, idx) => {
+        top5.forEach((student, idx) => {
             let badge = document.createElement('div');
             badge.className = 'student-badge';
             let rank = idx+1;
@@ -510,57 +476,74 @@
         });
         
         const counterElement = document.getElementById('globalCounter');
-        if(counterElement) counterElement.innerText = users.length;
+        if(counterElement) counterElement.innerText = allStudents.length;
     }
     
-    async function addPointsToCurrentUser() {
-        if(!currentUser || !userCity || !userSection) {
-            showMessage('⚠️ الرجاء تسجيل الدخول أولاً', true);
-            return false;
+    // تحديث دوري للطلاب الوهميين
+    setInterval(() => {
+        const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
+        if (lastUpdateHour !== currentHour) {
+            cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
+            lastUpdateHour = currentHour;
+            localStorage.setItem('demoStudentsCache', JSON.stringify(cachedDemoStudents));
+            localStorage.setItem('demoLastHour', lastUpdateHour);
+            renderLeaderboard();
+            showMessage("🔄 تم تحديث ترتيب المتصدرين تلقائياً!");
         }
+    }, 60000);
+    
+    // ======================== تسجيل المستخدم الحقيقي (يحفظ على الجهاز إلى الأبد) ========================
+    let currentUser = localStorage.getItem('currentUser') || null;
+    let userCity = localStorage.getItem('userCity') || '';
+    let userSection = localStorage.getItem('userSection') || '';
+    let userPoints = parseInt(localStorage.getItem('userPoints') || '0');
+    
+    function showMessage(msg, isError = false) {
+        const msgDiv = document.getElementById('statusMessage');
+        msgDiv.innerHTML = msg;
+        msgDiv.style.color = isError ? 'red' : 'green';
+        setTimeout(() => { msgDiv.innerHTML = ''; }, 3000);
+    }
+    
+    function saveRealUser(name, city, section) {
+        // حفظ بيانات المستخدم الحالي في localStorage
+        localStorage.setItem('currentUser', name);
+        localStorage.setItem('userCity', city);
+        localStorage.setItem('userSection', section);
+        localStorage.setItem('userPoints', userPoints);
         
-        const users = await loadAllUsers();
-        const userObj = users.find(u => u.name === currentUser && u.city === userCity && u.section === userSection && !u.isDeveloper);
+        currentUser = name;
+        userCity = city;
+        userSection = section;
         
-        if(userObj) {
-            const success = await incrementUserPoints(userObj.id, userObj.points || 0);
-            // حتى لو فشل Firebase، نحدث النقاط محلياً
-            userObj.points = (userObj.points || 0) + 1;
-            await renderLeaderboard();
-            await checkAndBoostDeveloper();
-            showMessage(`🎉 تهانينا! تم إضافة شهادة جديدة. رصيدك الآن ${userObj.points}`);
-            return true;
+        // حفظ في قائمة المستخدمين الحقيقيين
+        let realUsers = loadRealUsers();
+        const existingIndex = realUsers.findIndex(u => u.name === name && u.city === city);
+        if (existingIndex !== -1) {
+            realUsers[existingIndex].points = userPoints;
         } else {
-            showMessage('❌ لم يتم العثور على حسابك', true);
+            realUsers.push({ name, city, section, points: userPoints });
         }
-        return false;
+        saveRealUsers(realUsers);
+        
+        renderLeaderboard();
     }
     
-    async function checkAndBoostDeveloper() {
-        const users = await loadAllUsers();
-        const developer = users.find(u => u.id === DEVELOPER_ID);
-        if(!developer) return;
-        
-        const nonDeveloper = users.filter(u => !u.isDeveloper);
-        const maxOthers = Math.max(...nonDeveloper.map(u => u.points || 0), 0);
-        
-        if(developer.points <= maxOthers) {
-            const newPoints = maxOthers + 2;
-            try {
-                await db.collection('students').doc(DEVELOPER_ID).update({ points: newPoints });
-                developer.points = newPoints;
-            } catch(e) {
-                console.warn("فشل تحديث المطور في Firebase");
-            }
-            await renderLeaderboard();
-            if(currentUser === DEVELOPER_NAME) {
-                showMessage("🛡️ تم زيادة رصيدك تلقائياً نقطتين للحفاظ على الصدارة.");
-            }
+    // تحميل بيانات المستخدم السابق من الجهاز
+    if (currentUser) {
+        document.getElementById('studentName').value = currentUser;
+        document.getElementById('studentCity').value = userCity;
+        document.getElementById('studentSection').value = userSection;
+        // التأكد من أن النقاط تظهر في اللوحة
+        let realUsers = loadRealUsers();
+        const userData = realUsers.find(u => u.name === currentUser && u.city === userCity);
+        if (userData) {
+            userPoints = userData.points;
+            localStorage.setItem('userPoints', userPoints);
         }
     }
     
-    // انضمام مستخدم جديد (حفظ في Firebase + محلياً)
-    document.getElementById('joinBtn')?.addEventListener('click', async () => {
+    document.getElementById('joinBtn')?.addEventListener('click', () => {
         let name = document.getElementById('studentName').value.trim();
         let city = document.getElementById('studentCity').value.trim();
         let section = document.getElementById('studentSection').value;
@@ -568,64 +551,42 @@
             showMessage('❌ اكتب الاسم الثنائي والمحافظة', true);
             return; 
         }
-        
-        const isDeveloperJoin = (name === DEVELOPER_NAME && city === DEVELOPER_CITY && section === DEVELOPER_SECTION);
-        const userId = isDeveloperJoin ? DEVELOPER_ID : `${name}_${city}_${section}`.replace(/\s/g, '_');
-        
-        // حفظ في التخزين المحلي فوراً
-        saveToLocalStorage(name, city, section);
-        
-        const users = await loadAllUsers();
-        const existingUser = users.find(u => u.id === userId);
-        
-        if(!existingUser) {
-            const newUser = {
-                id: userId,
-                name: name,
-                city: city,
-                section: section,
-                points: isDeveloperJoin ? 3 : 0,
-                isDeveloper: isDeveloperJoin || false,
-                createdAt: new Date().toISOString()
-            };
-            await saveUserToFirebase(newUser);
-            showMessage(isDeveloperJoin ? "👑 تم تثبيتك في صدارة المتصدرين بـ 3 نقاط كمطور المنصة." : `✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين.`);
-        } else {
-            if(isDeveloperJoin && !existingUser.isDeveloper) {
-                existingUser.isDeveloper = true;
-                existingUser.points = Math.max(existingUser.points || 0, 3);
-                await saveUserToFirebase(existingUser);
-                showMessage("تم ترقية حسابك إلى مطور المنصة مع 3 نقاط.");
-            } else if (!isDeveloperJoin && existingUser.isDeveloper) {
-                showMessage("هذا الاسم محجوز لمطور المنصة.", true);
-                return;
-            } else {
-                showMessage(`👋 مرحباً بعودتك ${name}!`);
-            }
-        }
-        
-        await renderLeaderboard();
-        await checkAndBoostDeveloper();
-        await syncLocalWithCloud();
+        saveRealUser(name, city, section);
+        showMessage(`✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين. سيتم حفظ بياناتك .`);
     });
     
-    document.getElementById('refreshLeaderboardBtn')?.addEventListener('click', async () => {
-        await renderLeaderboard();
-        await checkFirebaseConnection();
-        showMessage("✅ تم تحديث لوحة المتصدرين من قاعدة البيانات.");
+    document.getElementById('refreshLeaderboardBtn')?.addEventListener('click', () => {
+        renderLeaderboard();
+        showMessage("✅ تم تحديث لوحة المتصدرين.");
     });
     
-    // ======================== نظام الشهادات والمشاهدة ========================
+    // ======================== نظام الشهادات والمشاهدة (يحفظ عدد الشهادات على الجهاز) ========================
     let activeTimers = {};
     
     function startWatchingTimer(subject, modelNum, url) {
         if(activeTimers[url]) clearTimeout(activeTimers[url]);
         showMessage(`⏱️ بدء حساب وقت المشاهدة لنموذج ${subject} - ${modelNum}. مطلوب 30 دقيقة للحصول على الشهادة.`);
-        activeTimers[url] = setTimeout(async () => {
+        activeTimers[url] = setTimeout(() => {
             if(currentUser && userCity && userSection) {
-                const success = await addPointsToCurrentUser();
-                if(success) {
+                if (userPoints < 16) {
+                    userPoints++;
+                    localStorage.setItem('userPoints', userPoints);
+                    
+                    // تحديث في قائمة المستخدمين الحقيقيين
+                    let realUsers = loadRealUsers();
+                    const userIndex = realUsers.findIndex(u => u.name === currentUser && u.city === userCity);
+                    if (userIndex !== -1) {
+                        realUsers[userIndex].points = userPoints;
+                    } else {
+                        realUsers.push({ name: currentUser, city: userCity, section: userSection, points: userPoints });
+                    }
+                    saveRealUsers(realUsers);
+                    
+                    showMessage(`🎉 تهانينا! بعد مشاهدة 30 دقيقة، تم منحك شهادة معتمدة لنموذج ${subject} - ${modelNum}. رصيدك الآن ${userPoints} شهادة.`);
                     generateCertificate(currentUser, userCity, userSection, subject, modelNum);
+                    renderLeaderboard();
+                } else {
+                    showMessage(`🎉 تهانينا! أنت بالفعل حصلت على ${userPoints} شهادة. استمر في المذاكرة!`);
                 }
             } else {
                 showMessage("⚠️ الرجاء الانضمام للوحة المتصدرين أولاً.", true);
@@ -750,7 +711,7 @@
 
     document.getElementById('previewCertificateBtn')?.addEventListener('click', () => {
         generateCertificate("اسم الطالب التجريبي", "المحافظة", "علمي علوم", "الأحياء", "1");
-        showMessage("هذه نسخة تجريبية للشهادة. احصل على شهادتك الخاصة بعد مشاهدة 30 دقيقة من أي نموذج.");
+        showMessage("هذه نسخة تجريبية للشهادة.");
     });
 
     // التبويب
@@ -776,25 +737,17 @@
     document.getElementById('scrollScientific')?.addEventListener('click', (e) => { e.preventDefault(); scientificDiv.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollLiterary')?.addEventListener('click', (e) => { e.preventDefault(); literaryDiv.scrollIntoView({behavior:'smooth'}); });
     
-    // تحميل البيانات عند بدء التشغيل
-    loadFromLocalStorage();
     renderLeaderboard();
-    syncLocalWithCloud();
     
-    // مراقبة التغييرات في Firebase (تحديث تلقائي)
-    db.collection('students').onSnapshot(() => {
-        renderLeaderboard();
-    });
-    
-    // العداد التلقائي (يزيد كل 18 دقيقة)
-    let globalCounter = localStorage.getItem('globalCounter') ? parseInt(localStorage.getItem('globalCounter')) : 14;
+    // ======================== عداد المنضمين ========================
+    let globalCounter = localStorage.getItem('globalCounter') ? parseInt(localStorage.getItem('globalCounter')) : 35;
     const counterSpan = document.getElementById('globalCounter');
     if(counterSpan) counterSpan.innerText = globalCounter;
     setInterval(() => {
         globalCounter++;
         if(counterSpan) counterSpan.innerText = globalCounter;
         localStorage.setItem('globalCounter', globalCounter);
-    }, 18 * 60 * 1000);
+    }, 5 * 60 * 1000);
 </script>
 </body>
     </html>
