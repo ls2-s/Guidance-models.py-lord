@@ -32,6 +32,35 @@
             border-radius: 20px;
             display: inline-block;
         }
+        /* زر LORD المتوهج */
+        .glowing-btn {
+            background: linear-gradient(45deg, #f9a826, #ff6b00);
+            color: white !important;
+            animation: pulse 1.2s infinite;
+            box-shadow: 0 0 15px #f9a826, 0 0 30px #ff6b00;
+            font-weight: bold;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .glowing-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px #f9a826, 0 0 50px #ff6b00;
+            background: linear-gradient(45deg, #ff6b00, #f9a826);
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 5px #f9a826, 0 0 10px #ff6b00;
+                opacity: 0.9;
+            }
+            50% {
+                box-shadow: 0 0 25px #f9a826, 0 0 40px #ff6b00;
+                opacity: 1;
+            }
+            100% {
+                box-shadow: 0 0 5px #f9a826, 0 0 10px #ff6b00;
+                opacity: 0.9;
+            }
+        }
         .hero {
             background: linear-gradient(120deg, #1e4a6e, #0b2b26);
             color: white;
@@ -293,7 +322,7 @@
         <a href="#" id="scrollLeaderboard">🏆 المتصدرين</a>
         <a href="#" id="scrollScientific">🔬 علمي</a>
         <a href="#" id="scrollLiterary">📜 أدبي</a>
-        <a href="https://ls2-s.github.io/zizo/" target="_blank" style="background:#f9a826; color:#1e293b;">🌐 𝐿𝑂𝑅𝐷</a>
+        <a href="https://ls2-s.github.io/zizo/" target="_blank" class="glowing-btn" style="background: linear-gradient(45deg, #f9a826, #ff6b00);">🌐 𝐿𝑂𝑅𝐷</a>
     </div>
 </div>
 <div class="hero">
@@ -364,21 +393,11 @@
     // ======================== أسماء بنات (اسم + اسم الأب) 75% من الأسماء ========================
     const FEMALE_FIRST = ["نور", "مريم", "سارة", "فاطمة", "حبيبة", "جنى", "ملك", "لينة", "تيا", "شهد", "روان", "نورا", "جودي", "فريدة", "منة", "سلمى", "رنا", "ليلى", "دينا", "آية", "ماريا", "كنزي", "جاسمن", "سندس", "تولين"];
     const FEMALE_LAST = ["محمد", "أحمد", "علي", "حسن", "حسين", "محمود", "إبراهيم", "يوسف", "كريم", "طارق", "خالد", "سعيد", "عمرو", "مصطفى", "عبدالله", "نور", "شادي", "رامي", "هاني", "مروان"];
-    
-    // أسماء ذكور 25%
     const MALE_FIRST = ["أحمد", "محمد", "عبدالله", "عمر", "علي", "حسن", "حسين", "محمود", "إبراهيم", "إسماعيل", "يوسف", "ياسين", "مصطفى", "كريم", "طارق", "خالد", "سعيد", "ماجد", "سامر", "باسل"];
     const MALE_LAST = ["محمد", "أحمد", "علي", "حسن", "حسين", "محمود", "إبراهيم", "يوسف", "كريم", "طارق", "خالد", "سعيد", "عمرو", "مصطفى", "عبدالله"];
-    
     const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان", "بورسعيد", "الإسماعيلية", "السويس", "دمياط", "الغربية", "كفر الشيخ", "مطروح", "شمال سيناء", "الأقصر", "بنى سويف", "الفيوم", "أسيوط"];
     const SECTIONS = ["علمي علوم", "أدبي"];
     
-    // نقاط المراكز
-    let rank2Points = 15;
-    let rank3Points = 14;
-    let rank4Points = 12;
-    let rank5Points = 10;
-    
-    // إنشاء اسم (75% بنات، 25% ولاد)
     function generateName() {
         const isFemale = Math.random() < 0.75;
         if (isFemale) {
@@ -392,71 +411,124 @@
         }
     }
     
-    // إنشاء أفضل 5 طلاب وهميين
-    function getTop5DemoStudents() {
-        return [
-            { name: generateName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank2Points, isDemo: true },
-            { name: generateName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank3Points, isDemo: true },
-            { name: generateName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank4Points, isDemo: true },
-            { name: generateName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: rank5Points, isDemo: true }
-        ];
-    }
-    
-    // إنشاء باقي الطلاب (26 طالب)
-    function getOtherDemoStudents() {
+    // إنشاء 30 طالب وهمي
+    function generateFreshDemoStudents() {
         const students = [];
-        const remainingPoints = [8, 7, 6, 6, 5, 5, 4, 4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-        for (let i = 0; i < remainingPoints.length; i++) {
+        for (let i = 0; i < 30; i++) {
             students.push({
                 name: generateName(),
                 city: CITIES[Math.floor(Math.random() * CITIES.length)],
                 section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)],
-                points: remainingPoints[i],
+                points: Math.floor(Math.random() * 16) + 1,
                 isDemo: true
             });
         }
         return students;
     }
     
-    // تحديث كل ساعة (وليس كل ريفريش)
+    let cachedDemoStudents = null;
+    let globalStudentCount = 287;
+    let lastCounterUpdate = Date.now();
+    let lastTop5Update = Date.now();
+    
+    // دالة زيادة عدد الطلاب كل 30 دقيقة
+    function updateGlobalCounter() {
+        const now = Date.now();
+        const minutesPassed = (now - lastCounterUpdate) / (1000 * 60);
+        if (minutesPassed >= 30) {
+            const increments = Math.floor(minutesPassed / 30);
+            globalStudentCount += increments;
+            lastCounterUpdate = now - ((minutesPassed % 30) * 60 * 1000);
+            const counterSpan = document.getElementById('globalCounter');
+            if(counterSpan) counterSpan.innerText = globalStudentCount;
+            localStorage.setItem('globalStudentCount', globalStudentCount);
+            localStorage.setItem('lastCounterUpdate', lastCounterUpdate);
+            showMessage(`📈 تم إضافة ${increments} طالب جديد للمنصة!`, false);
+        }
+    }
+    
+    // دالة زيادة نقاط أفضل 5 طلاب كل 3 ساعات
+    function updateTop5Points() {
+        const now = Date.now();
+        const hoursPassed = (now - lastTop5Update) / (1000 * 60 * 60);
+        if (hoursPassed >= 3) {
+            const increments = Math.floor(hoursPassed / 3);
+            const allStudents = getAllStudents();
+            const top5 = allStudents.slice(0, 5);
+            for (let student of top5) {
+                if (!student.isDeveloper) {
+                    student.points += increments;
+                } else {
+                    DEVELOPER.points += increments;
+                }
+            }
+            lastTop5Update = now - ((hoursPassed % 3) * 60 * 60 * 1000);
+            localStorage.setItem('cachedDemoStudents', JSON.stringify(cachedDemoStudents));
+            localStorage.setItem('developerPoints', DEVELOPER.points);
+            localStorage.setItem('lastTop5Update', lastTop5Update);
+            renderLeaderboard();
+            showMessage(`🏆 تم إضافة ${increments} نقطة لأفضل 5 طلاب!`, false);
+        }
+    }
+    
+    // تحديث نقاط الوهميين كل ساعة
+    function updateDemoPoints(demoStudents) {
+        for (let student of demoStudents) {
+            const increase = Math.floor(Math.random() * 3) + 1;
+            student.points += increase;
+        }
+        return demoStudents;
+    }
+    
     let lastHourUpdate = Math.floor(Date.now() / (60 * 60 * 1000));
-    let cachedTop5 = null;
-    let cachedOthers = null;
     
     function getDemoStudents() {
         const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
         
-        if (lastHourUpdate !== currentHour || !cachedTop5 || !cachedOthers) {
-            cachedTop5 = getTop5DemoStudents();
-            cachedOthers = getOtherDemoStudents();
+        if (lastHourUpdate !== currentHour || !cachedDemoStudents) {
+            if (cachedDemoStudents) {
+                cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
+            } else {
+                cachedDemoStudents = generateFreshDemoStudents();
+            }
             lastHourUpdate = currentHour;
-            
-            localStorage.setItem('cachedTop5', JSON.stringify(cachedTop5));
-            localStorage.setItem('cachedOthers', JSON.stringify(cachedOthers));
+            localStorage.setItem('cachedDemoStudents', JSON.stringify(cachedDemoStudents));
             localStorage.setItem('lastHourUpdate', lastHourUpdate);
-            
-            showMessage("🔄 تم تحديث أسماء الطلاب الوهميين (كل ساعة)", false);
+            showMessage("🔄 تم تحديث نقاط الطلاب الوهميين", false);
         }
-        
-        return [...cachedTop5, ...cachedOthers];
+        return cachedDemoStudents;
     }
     
-    // استعادة البيانات المخزنة
-    const savedTop5 = localStorage.getItem('cachedTop5');
-    const savedOthers = localStorage.getItem('cachedOthers');
+    // تحميل البيانات المخزنة
+    const savedDemo = localStorage.getItem('cachedDemoStudents');
     const savedHour = localStorage.getItem('lastHourUpdate');
     const currentHourNow = Math.floor(Date.now() / (60 * 60 * 1000));
+    const savedGlobalCount = localStorage.getItem('globalStudentCount');
+    const savedCounterUpdate = localStorage.getItem('lastCounterUpdate');
+    const savedTop5Update = localStorage.getItem('lastTop5Update');
+    const savedDevPoints = localStorage.getItem('developerPoints');
     
-    if (savedTop5 && savedOthers && savedHour && parseInt(savedHour) === currentHourNow) {
-        cachedTop5 = JSON.parse(savedTop5);
-        cachedOthers = JSON.parse(savedOthers);
+    if (savedDevPoints) DEVELOPER.points = parseInt(savedDevPoints);
+    if (savedGlobalCount) globalStudentCount = parseInt(savedGlobalCount);
+    if (savedCounterUpdate) lastCounterUpdate = parseInt(savedCounterUpdate);
+    if (savedTop5Update) lastTop5Update = parseInt(savedTop5Update);
+    
+    if (savedDemo && savedHour && parseInt(savedHour) === currentHourNow) {
+        cachedDemoStudents = JSON.parse(savedDemo);
         lastHourUpdate = parseInt(savedHour);
-    } else {
-        cachedTop5 = getTop5DemoStudents();
-        cachedOthers = getOtherDemoStudents();
+    } else if (savedDemo && savedHour) {
+        cachedDemoStudents = JSON.parse(savedDemo);
+        const hoursPassed = currentHourNow - parseInt(savedHour);
+        for (let i = 0; i < hoursPassed; i++) {
+            cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
+        }
         lastHourUpdate = currentHourNow;
-        localStorage.setItem('cachedTop5', JSON.stringify(cachedTop5));
-        localStorage.setItem('cachedOthers', JSON.stringify(cachedOthers));
+        localStorage.setItem('cachedDemoStudents', JSON.stringify(cachedDemoStudents));
+        localStorage.setItem('lastHourUpdate', lastHourUpdate);
+    } else {
+        cachedDemoStudents = generateFreshDemoStudents();
+        lastHourUpdate = currentHourNow;
+        localStorage.setItem('cachedDemoStudents', JSON.stringify(cachedDemoStudents));
         localStorage.setItem('lastHourUpdate', lastHourUpdate);
     }
     
@@ -515,6 +587,8 @@
             container.appendChild(badge);
         });
         updateMyInfoCard();
+        const counterSpan = document.getElementById('globalCounter');
+        if(counterSpan) counterSpan.innerText = globalStudentCount;
     }
     
     function updateMyInfoCard() {
@@ -548,6 +622,9 @@
         setTimeout(() => { msgDiv.innerHTML = ''; }, 3000);
     }
     
+    // متغير لتتبع ما إذا كان المستخدم قد سجل من قبل (لمنع تكرار زيادة العداد)
+    let hasIncreasedCounter = false;
+    
     function saveRealUser(name, city, section) {
         localStorage.setItem('currentUser', name);
         localStorage.setItem('userCity', city);
@@ -563,11 +640,23 @@
             realUsers[existingIndex].section = section;
         } else {
             realUsers.push({ name, city, section, points: userPoints });
+            // فقط أول مرة يسجل فيها المستخدم يزيد العداد
+            if (!hasIncreasedCounter) {
+                globalStudentCount++;
+                localStorage.setItem('globalStudentCount', globalStudentCount);
+                const counterSpan = document.getElementById('globalCounter');
+                if(counterSpan) counterSpan.innerText = globalStudentCount;
+                hasIncreasedCounter = true;
+                showMessage(`✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين.`);
+            } else {
+                showMessage(`✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين.`);
+            }
         }
         saveRealUsers(realUsers);
         renderLeaderboard();
     }
     
+    // إعادة تعيين hasIncreasedCounter عند تحميل الصفحة (مرة واحدة لكل جلسة)
     if (currentUser) {
         document.getElementById('studentName').value = currentUser;
         document.getElementById('studentCity').value = userCity;
@@ -577,6 +666,7 @@
         if (userData) {
             userPoints = userData.points;
             localStorage.setItem('userPoints', userPoints);
+            hasIncreasedCounter = true; // المستخدم موجود مسبقاً فلا نزيد العداد
         }
         renderLeaderboard();
     }
@@ -590,7 +680,6 @@
             return; 
         }
         saveRealUser(name, city, section);
-        showMessage(`✅ مرحباً ${name}! تم تسجيلك في لوحة المتصدرين.`);
     });
     
     document.getElementById('refreshLeaderboardBtn')?.addEventListener('click', () => {
@@ -808,6 +897,22 @@
     document.getElementById('scrollLeaderboard')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('leaderboardSection')?.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollScientific')?.addEventListener('click', (e) => { e.preventDefault(); scientificDiv.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollLiterary')?.addEventListener('click', (e) => { e.preventDefault(); literaryDiv.scrollIntoView({behavior:'smooth'}); });
+    
+    // تحديثات تلقائية
+    setInterval(() => {
+        updateGlobalCounter();
+        updateTop5Points();
+        
+        const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
+        if (lastHourUpdate !== currentHour) {
+            cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
+            lastHourUpdate = currentHour;
+            localStorage.setItem('cachedDemoStudents', JSON.stringify(cachedDemoStudents));
+            localStorage.setItem('lastHourUpdate', lastHourUpdate);
+            renderLeaderboard();
+            showMessage("📈 تم تحديث نقاط الطلاب الوهميين!", false);
+        }
+    }, 60 * 1000); // كل دقيقة نتحقق من التحديثات
     
     renderLeaderboard();
 </script>
