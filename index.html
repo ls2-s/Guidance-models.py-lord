@@ -32,40 +32,85 @@
             border-radius: 20px;
             display: inline-block;
         }
-        /* زر LORD المتوهج */
         .glowing-btn {
             background: linear-gradient(45deg, #f9a826, #ff6b00);
             color: white !important;
             animation: pulse 1.2s infinite;
             box-shadow: 0 0 15px #f9a826, 0 0 30px #ff6b00;
             font-weight: bold;
-            border: none;
-            transition: all 0.3s ease;
-        }
-        .glowing-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px #f9a826, 0 0 50px #ff6b00;
-            background: linear-gradient(45deg, #ff6b00, #f9a826);
         }
         @keyframes pulse {
-            0% {
-                box-shadow: 0 0 5px #f9a826, 0 0 10px #ff6b00;
-                opacity: 0.9;
-            }
-            50% {
-                box-shadow: 0 0 25px #f9a826, 0 0 40px #ff6b00;
-                opacity: 1;
-            }
-            100% {
-                box-shadow: 0 0 5px #f9a826, 0 0 10px #ff6b00;
-                opacity: 0.9;
-            }
+            0% { box-shadow: 0 0 5px #f9a826, 0 0 10px #ff6b00; opacity: 0.9; }
+            50% { box-shadow: 0 0 25px #f9a826, 0 0 40px #ff6b00; opacity: 1; }
+            100% { box-shadow: 0 0 5px #f9a826, 0 0 10px #ff6b00; opacity: 0.9; }
         }
         .hero {
             background: linear-gradient(120deg, #1e4a6e, #0b2b26);
             color: white;
             text-align: center;
             padding: 2rem;
+        }
+        .countdown-box {
+            background: rgba(0,0,0,0.4);
+            border-radius: 60px;
+            padding: 0.6rem 1.5rem;
+            margin-top: 1rem;
+            display: inline-block;
+            backdrop-filter: blur(5px);
+            border: 1px solid #f9a826;
+            animation: countdownPulse 1s ease-in-out infinite;
+        }
+        @keyframes countdownPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(249, 168, 38, 0.4);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(249, 168, 38, 0.2);
+                transform: scale(1.02);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(249, 168, 38, 0);
+                transform: scale(1);
+            }
+        }
+        .countdown-title {
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+            color: #ffd966;
+            letter-spacing: 1px;
+        }
+        .countdown-timer {
+            display: flex;
+            gap: 0.6rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .countdown-unit {
+            background: #0b2b26;
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .countdown-unit span {
+            font-size: 1.3rem;
+            font-weight: 900;
+            background: #f9a826;
+            color: #1e293b;
+            padding: 0.1rem 0.5rem;
+            border-radius: 30px;
+            margin: 0 3px;
+            display: inline-block;
+            min-width: 45px;
+            transition: all 0.1s ease;
+        }
+        /* تأثير تناقص كل ثانية */
+        .countdown-unit span.blink {
+            transform: scale(0.95);
+            background: #ff8c00;
+            color: white;
         }
         .live-counter {
             background: #f9a826;
@@ -311,6 +356,7 @@
             .model-item { flex-direction: column; align-items: flex-start; }
             .student-badge { flex-direction: column; align-items: flex-start; }
             .my-info-card { flex-direction: column; align-items: flex-start; }
+            .countdown-unit span { font-size: 1rem; min-width: 35px; }
         }
     </style>
 </head>
@@ -328,6 +374,18 @@
 <div class="hero">
     <h1>📚 النماذج الاسترشادية الرسمية 2026</h1>
     <p>شاهد النموذج لمدة 30 دقيقة لتحصل على شهادة معتمدة</p>
+    
+    <!-- العداد التنازلي لنهاية الامتحانات -->
+    <div class="countdown-box">
+        <div class="countdown-title">⏳ متبقٍ على نهاية الامتحانات</div>
+        <div class="countdown-timer" id="examCountdown">
+            <div class="countdown-unit"><span id="days">00</span> يوم</div>
+            <div class="countdown-unit"><span id="hours">00</span> ساعة</div>
+            <div class="countdown-unit"><span id="minutes">00</span> دقيقة</div>
+            <div class="countdown-unit"><span id="seconds">00</span> ثانية</div>
+        </div>
+    </div>
+    
     <div class="live-counter">
         🟢 عدد المنضمين للمنصة: <span id="globalCounter">287</span> طالباً
     </div>
@@ -381,6 +439,60 @@
 </div>
 
 <script>
+    // ======================== العداد التنازلي مع تأثير النبض والوميض ========================
+    function updateExamCountdown() {
+        const examEndDate = new Date(2026, 6, 15, 23, 59, 59); // 15 يوليو 2026 الساعة 11:59:59 مساءً
+        const now = new Date();
+        const diff = examEndDate - now;
+        
+        if (diff <= 0) {
+            document.getElementById('days').innerText = '00';
+            document.getElementById('hours').innerText = '00';
+            document.getElementById('minutes').innerText = '00';
+            document.getElementById('seconds').innerText = '00';
+            return;
+        }
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        // تحديث القيم
+        const daysSpan = document.getElementById('days');
+        const hoursSpan = document.getElementById('hours');
+        const minutesSpan = document.getElementById('minutes');
+        const secondsSpan = document.getElementById('seconds');
+        
+        if (daysSpan.innerText !== days.toString().padStart(2, '0')) {
+            daysSpan.innerText = days.toString().padStart(2, '0');
+            addBlinkEffect(daysSpan);
+        }
+        if (hoursSpan.innerText !== hours.toString().padStart(2, '0')) {
+            hoursSpan.innerText = hours.toString().padStart(2, '0');
+            addBlinkEffect(hoursSpan);
+        }
+        if (minutesSpan.innerText !== minutes.toString().padStart(2, '0')) {
+            minutesSpan.innerText = minutes.toString().padStart(2, '0');
+            addBlinkEffect(minutesSpan);
+        }
+        if (secondsSpan.innerText !== seconds.toString().padStart(2, '0')) {
+            secondsSpan.innerText = seconds.toString().padStart(2, '0');
+            addBlinkEffect(secondsSpan);
+        }
+    }
+    
+    function addBlinkEffect(element) {
+        element.classList.add('blink');
+        setTimeout(() => {
+            element.classList.remove('blink');
+        }, 150);
+    }
+    
+    // تحديث العداد كل ثانية مع تأثير
+    setInterval(updateExamCountdown, 1000);
+    updateExamCountdown();
+    
     // ======================== بيانات المطور ========================
     let DEVELOPER = {
         name: "زياد عماد-مطور الويب",
@@ -390,55 +502,61 @@
         isDeveloper: true
     };
     
-    // ======================== أسماء بنات (اسم + اسم الأب) 75% من الأسماء ========================
-    const FEMALE_FIRST = ["نور", "مريم", "سارة", "فاطمة", "حبيبة", "جنى", "ملك", "لينة", "تيا", "شهد", "روان", "نورا", "جودي", "فريدة", "منة", "سلمى", "رنا", "ليلى", "دينا", "آية", "ماريا", "كنزي", "جاسمن", "سندس", "تولين"];
-    const FEMALE_LAST = ["محمد", "أحمد", "علي", "حسن", "حسين", "محمود", "إبراهيم", "يوسف", "كريم", "طارق", "خالد", "سعيد", "عمرو", "مصطفى", "عبدالله", "نور", "شادي", "رامي", "هاني", "مروان"];
-    const MALE_FIRST = ["أحمد", "محمد", "عبدالله", "عمر", "علي", "حسن", "حسين", "محمود", "إبراهيم", "إسماعيل", "يوسف", "ياسين", "مصطفى", "كريم", "طارق", "خالد", "سعيد", "ماجد", "سامر", "باسل"];
-    const MALE_LAST = ["محمد", "أحمد", "علي", "حسن", "حسين", "محمود", "إبراهيم", "يوسف", "كريم", "طارق", "خالد", "سعيد", "عمرو", "مصطفى", "عبدالله"];
-    const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان", "بورسعيد", "الإسماعيلية", "السويس", "دمياط", "الغربية", "كفر الشيخ", "مطروح", "شمال سيناء", "الأقصر", "بنى سويف", "الفيوم", "أسيوط"];
+    // ======================== أسماء مختلفة تماماً (75% بنات) ========================
+    const FEMALE_FIRST = ["نور", "مريم", "سارة", "فاطمة", "حبيبة", "جنى", "ملك", "لينة", "تيا", "شهد", "روان", "ندي", "جودי", "فريدة", "منة", "سلمى", "رنا", "ليلى", "دينا", "آية", "ماريا", "كنزي", "جاسمن", "سندس", "تولين", "جويل", "كارما", "ميرنا", "نادين", "لوجين"];
+    const FEMALE_LAST = ["محمد", "أحمد", "علي", "حسن", "حسين", "محمود", "إبراهيم", "يوسف", "كريم", "طارق", "خالد", "سعيد", "عمرو", "مصطفى", "عبدالله", "نور", "شادي", "رامي", "هاني", "مروان", "أمين", "سمير", "عادل", "رفعت", "جمال"];
+    const MALE_FIRST = ["أحمد", "محمد", "عبدالله", "عمر", "علي", "حسن", "حسين", "محمود", "إبراهيم", "إسماعيل", "يوسف", "ياسين", "مصطفى", "كريم", "طارق", "خالد", "سعيد", "ماجد", "سامر", "باسل", "فارس", "ليث", "سيف", "عدي", "رامي"];
+    const MALE_LAST = ["محمد", "أحمد", "علي", "حسن", "حسين", "محمود", "إبراهيم", "يوسف", "كريم", "طارق", "خالد", "سعيد", "عمرو", "مصطفى", "عبدالله", "فارس", "ليث", "سيف", "عدي", "رامי"];
+    const CITIES = ["القاهرة", "الإسكندرية", "الجيزة", "الشرقية", "الدقهلية", "البحيرة", "المنوفية", "القليوبية", "سوهاج", "المنيا", "قنا", "أسوان", "بورسعيد", "الإسماعيلية", "السويس", "دمياط", "الغربية", "كفر الشيخ", "الأقصر", "بنى سويف", "الفيوم", "أسيوط"];
     const SECTIONS = ["علمي علوم", "أدبي"];
     
-    function generateName() {
-        const isFemale = Math.random() < 0.75;
-        if (isFemale) {
-            const first = FEMALE_FIRST[Math.floor(Math.random() * FEMALE_FIRST.length)];
-            const last = FEMALE_LAST[Math.floor(Math.random() * FEMALE_LAST.length)];
-            return `${first} ${last}`;
-        } else {
-            const first = MALE_FIRST[Math.floor(Math.random() * MALE_FIRST.length)];
-            const last = MALE_LAST[Math.floor(Math.random() * MALE_LAST.length)];
-            return `${first} ${last}`;
-        }
+    let usedNames = new Set();
+    
+    function generateUniqueName() {
+        let attempts = 0;
+        let name;
+        do {
+            const isFemale = Math.random() < 0.75;
+            if (isFemale) {
+                const first = FEMALE_FIRST[Math.floor(Math.random() * FEMALE_FIRST.length)];
+                const last = FEMALE_LAST[Math.floor(Math.random() * FEMALE_LAST.length)];
+                name = `${first} ${last}`;
+            } else {
+                const first = MALE_FIRST[Math.floor(Math.random() * MALE_FIRST.length)];
+                const last = MALE_LAST[Math.floor(Math.random() * MALE_LAST.length)];
+                name = `${first} ${last}`;
+            }
+            attempts++;
+            if (attempts > 100) break;
+        } while (usedNames.has(name));
+        usedNames.add(name);
+        return name;
     }
     
-    // إنشاء 30 طالب وهمي
-    function generateFreshDemoStudents() {
-        const students = [];
-        for (let i = 0; i < 30; i++) {
-            students.push({
-                name: generateName(),
-                city: CITIES[Math.floor(Math.random() * CITIES.length)],
-                section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)],
-                points: Math.floor(Math.random() * 16) + 1,
-                isDemo: true
-            });
-        }
-        return students;
-    }
+    // نقاط البداية المحددة
+    const START_POINTS = {
+        rank1: 17,  // المطور
+        rank2: 14,
+        rank3: 13,
+        rank4: 11,
+        rank5: 10,
+        other: 9
+    };
     
-    let cachedDemoStudents = null;
+    let cachedTop5 = null;
+    let cachedOthers = null;
     let globalStudentCount = 287;
     let lastCounterUpdate = Date.now();
     let lastTop5Update = Date.now();
     
-    // دالة زيادة عدد الطلاب كل 30 دقيقة
+    // دالة زيادة عدد الطلاب كل 6 دقائق
     function updateGlobalCounter() {
         const now = Date.now();
         const minutesPassed = (now - lastCounterUpdate) / (1000 * 60);
-        if (minutesPassed >= 30) {
-            const increments = Math.floor(minutesPassed / 30);
+        if (minutesPassed >= 6) {
+            const increments = Math.floor(minutesPassed / 6);
             globalStudentCount += increments;
-            lastCounterUpdate = now - ((minutesPassed % 30) * 60 * 1000);
+            lastCounterUpdate = now - ((minutesPassed % 6) * 60 * 1000);
             const counterSpan = document.getElementById('globalCounter');
             if(counterSpan) counterSpan.innerText = globalStudentCount;
             localStorage.setItem('globalStudentCount', globalStudentCount);
@@ -447,89 +565,118 @@
         }
     }
     
-    // دالة زيادة نقاط أفضل 5 طلاب كل 3 ساعات
+    // دالة زيادة نقاط أفضل 5 طلاب كل 3 ساعات (نقطة أو نقطتين مع عدم تجاوز المطور)
     function updateTop5Points() {
         const now = Date.now();
         const hoursPassed = (now - lastTop5Update) / (1000 * 60 * 60);
         if (hoursPassed >= 3) {
             const increments = Math.floor(hoursPassed / 3);
-            const allStudents = getAllStudents();
-            const top5 = allStudents.slice(0, 5);
-            for (let student of top5) {
-                if (!student.isDeveloper) {
-                    student.points += increments;
-                } else {
-                    DEVELOPER.points += increments;
+            for (let i = 0; i < increments; i++) {
+                // المركز الثاني
+                if (cachedTop5 && cachedTop5[0]) {
+                    let increase = Math.random() > 0.5 ? 1 : 2;
+                    let newPoints = cachedTop5[0].points + increase;
+                    if (newPoints < DEVELOPER.points) {
+                        cachedTop5[0].points = newPoints;
+                    }
+                }
+                // المركز الثالث
+                if (cachedTop5 && cachedTop5[1]) {
+                    let increase = Math.random() > 0.5 ? 1 : 2;
+                    let newPoints = cachedTop5[1].points + increase;
+                    if (cachedTop5[0] && newPoints >= cachedTop5[0].points) {
+                        newPoints = cachedTop5[0].points - 1;
+                    }
+                    if (newPoints < DEVELOPER.points) {
+                        cachedTop5[1].points = Math.max(newPoints, 1);
+                    }
+                }
+                // المركز الرابع
+                if (cachedTop5 && cachedTop5[2]) {
+                    let increase = Math.random() > 0.5 ? 1 : 2;
+                    let newPoints = cachedTop5[2].points + increase;
+                    if (cachedTop5[1] && newPoints >= cachedTop5[1].points) {
+                        newPoints = cachedTop5[1].points - 1;
+                    }
+                    if (newPoints < DEVELOPER.points) {
+                        cachedTop5[2].points = Math.max(newPoints, 1);
+                    }
+                }
+                // المركز الخامس
+                if (cachedTop5 && cachedTop5[3]) {
+                    let increase = Math.random() > 0.5 ? 1 : 2;
+                    let newPoints = cachedTop5[3].points + increase;
+                    if (cachedTop5[2] && newPoints >= cachedTop5[2].points) {
+                        newPoints = cachedTop5[2].points - 1;
+                    }
+                    if (newPoints < DEVELOPER.points) {
+                        cachedTop5[3].points = Math.max(newPoints, 1);
+                    }
                 }
             }
             lastTop5Update = now - ((hoursPassed % 3) * 60 * 60 * 1000);
-            localStorage.setItem('cachedDemoStudents', JSON.stringify(cachedDemoStudents));
-            localStorage.setItem('developerPoints', DEVELOPER.points);
+            localStorage.setItem('cachedTop5', JSON.stringify(cachedTop5));
             localStorage.setItem('lastTop5Update', lastTop5Update);
             renderLeaderboard();
-            showMessage(`🏆 تم إضافة ${increments} نقطة لأفضل 5 طلاب!`, false);
+            showMessage(`🏆 تم تحديث نقاط المتصدرين!`, false);
         }
     }
     
-    // تحديث نقاط الوهميين كل ساعة
-    function updateDemoPoints(demoStudents) {
-        for (let student of demoStudents) {
-            const increase = Math.floor(Math.random() * 3) + 1;
-            student.points += increase;
-        }
-        return demoStudents;
+    // إنشاء أفضل 5 طلاب وهميين بنقاط محددة
+    function getFreshTop5() {
+        usedNames.clear();
+        return [
+            { name: generateUniqueName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: START_POINTS.rank2, isDemo: true, rank: 2 },
+            { name: generateUniqueName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: START_POINTS.rank3, isDemo: true, rank: 3 },
+            { name: generateUniqueName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: START_POINTS.rank4, isDemo: true, rank: 4 },
+            { name: generateUniqueName(), city: CITIES[Math.floor(Math.random() * CITIES.length)], section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)], points: START_POINTS.rank5, isDemo: true, rank: 5 }
+        ];
     }
     
-    let lastHourUpdate = Math.floor(Date.now() / (60 * 60 * 1000));
+    // إنشاء باقي الطلاب (26 طالب) بنقاط 9
+    function getFreshOthers() {
+        const students = [];
+        for (let i = 0; i < 26; i++) {
+            students.push({
+                name: generateUniqueName(),
+                city: CITIES[Math.floor(Math.random() * CITIES.length)],
+                section: SECTIONS[Math.floor(Math.random() * SECTIONS.length)],
+                points: START_POINTS.other,
+                isDemo: true
+            });
+        }
+        return students;
+    }
     
     function getDemoStudents() {
-        const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
-        
-        if (lastHourUpdate !== currentHour || !cachedDemoStudents) {
-            if (cachedDemoStudents) {
-                cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
-            } else {
-                cachedDemoStudents = generateFreshDemoStudents();
-            }
-            lastHourUpdate = currentHour;
-            localStorage.setItem('cachedDemoStudents', JSON.stringify(cachedDemoStudents));
-            localStorage.setItem('lastHourUpdate', lastHourUpdate);
-            showMessage("🔄 تم تحديث نقاط الطلاب الوهميين", false);
+        if (!cachedTop5 || !cachedOthers) {
+            cachedTop5 = getFreshTop5();
+            cachedOthers = getFreshOthers();
+            localStorage.setItem('cachedTop5', JSON.stringify(cachedTop5));
+            localStorage.setItem('cachedOthers', JSON.stringify(cachedOthers));
         }
-        return cachedDemoStudents;
+        return [...cachedTop5, ...cachedOthers];
     }
     
     // تحميل البيانات المخزنة
-    const savedDemo = localStorage.getItem('cachedDemoStudents');
-    const savedHour = localStorage.getItem('lastHourUpdate');
-    const currentHourNow = Math.floor(Date.now() / (60 * 60 * 1000));
+    const savedTop5 = localStorage.getItem('cachedTop5');
+    const savedOthers = localStorage.getItem('cachedOthers');
     const savedGlobalCount = localStorage.getItem('globalStudentCount');
     const savedCounterUpdate = localStorage.getItem('lastCounterUpdate');
     const savedTop5Update = localStorage.getItem('lastTop5Update');
-    const savedDevPoints = localStorage.getItem('developerPoints');
     
-    if (savedDevPoints) DEVELOPER.points = parseInt(savedDevPoints);
     if (savedGlobalCount) globalStudentCount = parseInt(savedGlobalCount);
     if (savedCounterUpdate) lastCounterUpdate = parseInt(savedCounterUpdate);
     if (savedTop5Update) lastTop5Update = parseInt(savedTop5Update);
     
-    if (savedDemo && savedHour && parseInt(savedHour) === currentHourNow) {
-        cachedDemoStudents = JSON.parse(savedDemo);
-        lastHourUpdate = parseInt(savedHour);
-    } else if (savedDemo && savedHour) {
-        cachedDemoStudents = JSON.parse(savedDemo);
-        const hoursPassed = currentHourNow - parseInt(savedHour);
-        for (let i = 0; i < hoursPassed; i++) {
-            cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
-        }
-        lastHourUpdate = currentHourNow;
-        localStorage.setItem('cachedDemoStudents', JSON.stringify(cachedDemoStudents));
-        localStorage.setItem('lastHourUpdate', lastHourUpdate);
-    } else {
-        cachedDemoStudents = generateFreshDemoStudents();
-        lastHourUpdate = currentHourNow;
-        localStorage.setItem('cachedDemoStudents', JSON.stringify(cachedDemoStudents));
-        localStorage.setItem('lastHourUpdate', lastHourUpdate);
+    if (savedTop5) cachedTop5 = JSON.parse(savedTop5);
+    if (savedOthers) cachedOthers = JSON.parse(savedOthers);
+    
+    if (!cachedTop5 || !cachedOthers) {
+        cachedTop5 = getFreshTop5();
+        cachedOthers = getFreshOthers();
+        localStorage.setItem('cachedTop5', JSON.stringify(cachedTop5));
+        localStorage.setItem('cachedOthers', JSON.stringify(cachedOthers));
     }
     
     // ======================== إدارة المستخدمين الحقيقيين ========================
@@ -622,7 +769,6 @@
         setTimeout(() => { msgDiv.innerHTML = ''; }, 3000);
     }
     
-    // متغير لتتبع ما إذا كان المستخدم قد سجل من قبل (لمنع تكرار زيادة العداد)
     let hasIncreasedCounter = false;
     
     function saveRealUser(name, city, section) {
@@ -640,7 +786,6 @@
             realUsers[existingIndex].section = section;
         } else {
             realUsers.push({ name, city, section, points: userPoints });
-            // فقط أول مرة يسجل فيها المستخدم يزيد العداد
             if (!hasIncreasedCounter) {
                 globalStudentCount++;
                 localStorage.setItem('globalStudentCount', globalStudentCount);
@@ -656,7 +801,6 @@
         renderLeaderboard();
     }
     
-    // إعادة تعيين hasIncreasedCounter عند تحميل الصفحة (مرة واحدة لكل جلسة)
     if (currentUser) {
         document.getElementById('studentName').value = currentUser;
         document.getElementById('studentCity').value = userCity;
@@ -666,7 +810,7 @@
         if (userData) {
             userPoints = userData.points;
             localStorage.setItem('userPoints', userPoints);
-            hasIncreasedCounter = true; // المستخدم موجود مسبقاً فلا نزيد العداد
+            hasIncreasedCounter = true;
         }
         renderLeaderboard();
     }
@@ -898,23 +1042,13 @@
     document.getElementById('scrollScientific')?.addEventListener('click', (e) => { e.preventDefault(); scientificDiv.scrollIntoView({behavior:'smooth'}); });
     document.getElementById('scrollLiterary')?.addEventListener('click', (e) => { e.preventDefault(); literaryDiv.scrollIntoView({behavior:'smooth'}); });
     
-    // تحديثات تلقائية
+    // تحديثات تلقائية (كل دقيقة للتحقق من الوقت)
     setInterval(() => {
         updateGlobalCounter();
         updateTop5Points();
-        
-        const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
-        if (lastHourUpdate !== currentHour) {
-            cachedDemoStudents = updateDemoPoints(cachedDemoStudents);
-            lastHourUpdate = currentHour;
-            localStorage.setItem('cachedDemoStudents', JSON.stringify(cachedDemoStudents));
-            localStorage.setItem('lastHourUpdate', lastHourUpdate);
-            renderLeaderboard();
-            showMessage("📈 تم تحديث نقاط الطلاب الوهميين!", false);
-        }
-    }, 60 * 1000); // كل دقيقة نتحقق من التحديثات
+    }, 60 * 1000);
     
     renderLeaderboard();
 </script>
 </body>
-    </html>
+                                            </html>
